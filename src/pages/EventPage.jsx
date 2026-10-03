@@ -25,7 +25,7 @@ export default function EventPage() {
 
   const load = useCallback(async () => {
     const { data } = await supabase.from('events')
-      .select('*, host:profiles(id, display_name, verified)').eq('id', id).maybeSingle();
+      .select('*, host:profiles!events_host_id_fkey(id, display_name, verified)').eq('id', id).maybeSingle();
     setEv(data ?? null);
     if (!data) return;
     const { data: s } = await supabase.rpc('event_stats', { eid: id });

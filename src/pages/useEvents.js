@@ -15,7 +15,7 @@ export default function useEvents(filter = {}) {
     (async () => {
       const since = new Date(Date.now() - 3 * 3600000).toISOString();
       let q = supabase.from('events')
-        .select('*, host:profiles(display_name, verified)')
+        .select('*, host:profiles!events_host_id_fkey(display_name, verified)')
         .gte('starts_at', since)
         .order('starts_at', { ascending: true })
         .limit(300);

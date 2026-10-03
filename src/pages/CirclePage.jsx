@@ -16,7 +16,7 @@ export default function CirclePage() {
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from('circles').select('*, organizer:profiles(id, display_name)').eq('id', id).maybeSingle();
+    const { data } = await supabase.from('circles').select('*, organizer:profiles!circles_organizer_id_fkey(id, display_name)').eq('id', id).maybeSingle();
     setC(data ?? null);
     if (!data || !user) return;
     const { data: m } = await supabase.from('circle_members').select('user_id, role, profile:profiles(display_name)').eq('circle_id', id);
