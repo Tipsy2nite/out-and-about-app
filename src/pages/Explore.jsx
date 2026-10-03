@@ -32,7 +32,7 @@ export default function Explore() {
           <section className="hero">
             <h1>Log off. Go outside. Bring friends.</h1>
             <p>Park picnics, porch concerts, open-invite birthdays, and the delightfully specific meetups you didn't know existed.</p>
-            <Link to="/signin" className="btn btn-primary">Join Out &amp; About</Link>
+            <Link to="/signin" state={{ mode: 'signup' }} className="btn btn-primary">Join Out &amp; About</Link>
           </section>
         )}
         <h2 className="page-title">What's happening outside</h2>
