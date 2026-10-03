@@ -13,6 +13,7 @@ import ParentsPage from './pages/ParentsPage.jsx';
 import PersonPage from './pages/PersonPage.jsx';
 import MePage from './pages/MePage.jsx';
 import SignIn from './pages/SignIn.jsx';
+import ResetPassword from './pages/ResetPassword.jsx';
 import Welcome from './pages/Welcome.jsx';
 import Guidelines from './pages/Guidelines.jsx';
 import NotFound from './pages/NotFound.jsx';
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="people/:id" element={<PersonPage />} />
             <Route path="me" element={<RequireAuth><MePage /></RequireAuth>} />
             <Route path="signin" element={<SignIn />} />
+            <Route path="reset-password" element={<ResetPassword />} />
             <Route path="welcome" element={<Welcome />} />
             <Route path="guidelines" element={<Guidelines />} />
             <Route path="*" element={<NotFound />} />
