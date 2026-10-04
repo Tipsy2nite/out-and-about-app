@@ -22,6 +22,7 @@ export default function MePage() {
       display_name: profile.display_name, neighborhood: profile.neighborhood || '', bio: profile.bio || '',
       vibes: profile.vibes, parent_role: profile.parent_role || '', kids_stages: profile.kids_stages,
       show_in_parent_finder: profile.show_in_parent_finder, hide_from_guest_lists: profile.hide_from_guest_lists,
+      hide_age: Boolean(profile.hide_age),
     });
   }, [profile]);
 
@@ -67,7 +68,7 @@ export default function MePage() {
             <p className="small">{profile.verified ? 'Verified' : 'Not verified yet'} · {plans.length} plans · {circles.length} circles</p></div></div>
         {!profile.verified && (
           <div className="panel"><h3>Get verified</h3>
-            <p className="small">Verified people get a badge and can host gatherings at home. During the beta, our team verifies people by hand. Email <a href={`mailto:${PROJECT_EMAIL}?subject=Verify%20me`}>{PROJECT_EMAIL}</a> to start.</p></div>
+            <p className="small">Verified people get a badge so others know our team has confirmed who they are. During the beta, our team verifies people by hand. Email <a href={`mailto:${PROJECT_EMAIL}?subject=Verify%20me`}>{PROJECT_EMAIL}</a> to start.</p></div>
         )}
         {watch.length > 0 && (
           <div className="panel panel-watch"><strong>Plans changed:</strong> {watch.map((e) => `${e.title} (${e.status})`).join(', ')}. Open the gathering for details.</div>
@@ -105,6 +106,8 @@ export default function MePage() {
         <h2>Safety &amp; privacy</h2>
         <label className="check"><input type="checkbox" checked={f.hide_from_guest_lists} onChange={(e) => setF({ ...f, hide_from_guest_lists: e.target.checked })} />
           Hide me from guest lists</label>
+        <label className="check"><input type="checkbox" checked={f.hide_age} onChange={(e) => setF({ ...f, hide_age: e.target.checked })} />
+          Hide my age on my profile</label>
         <label className="field">Trusted contact's email (for "Tell a friend where you'll be")
           <input type="email" value={trusted} onChange={(e) => setTrusted(e.target.value)} /></label>
         <button type="submit" className="btn btn-primary">Save changes</button>

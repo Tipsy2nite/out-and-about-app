@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
+import { HOST_MIN_AGE, MIN_AGE, ageFrom } from '../lib/constants.js';
 
 const MIN_PASSWORD = 8;
 
@@ -13,6 +14,8 @@ export default function SignIn() {
   const [mode, setMode] = useState(loc.state?.mode === 'signup' ? 'signup' : 'signin'); // signin | signup | forgot
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [birthdate, setBirthdate] = useState('');
+  const [hideAge, setHideAge] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState(null); // { title, body }
@@ -37,8 +40,14 @@ export default function SignIn() {
   };
 
   const signUp = async () => {
+    const age = ageFrom(birthdate);
+    if (age === null) { setError('Enter your date of birth.'); return; }
+    if (age < MIN_AGE) { setError(`Out & About is for adults ${MIN_AGE} and older.`); return; }
     if (password.length < MIN_PASSWORD) { setError(`Use at least ${MIN_PASSWORD} characters for your password.`); return; }
-    const { data, error: err } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } });
+    const { data, error: err } = await supabase.auth.signUp({
+      email, password,
+      options: { emailRedirectTo: redirectTo, data: { birthdate, hide_age: hideAge } },
+    });
     if (err) { setError(err.message); return; }
     // Supabase returns a user with no identities when the email is already registered.
     if (data.user && data.user.identities?.length === 0) {
@@ -116,6 +125,18 @@ export default function SignIn() {
                 {mode === 'signup' && <span className="small muted">At least {MIN_PASSWORD} characters.</span>}
               </label>
             )}
+            {mode === 'signup' && (
+              <>
+                <label className="field">Date of birth
+                  <input type="date" required autoComplete="bday" value={birthdate} onChange={(e) => setBirthdate(e.target.value)} />
+                  <span className="small muted">You must be {MIN_AGE}+ to join and {HOST_MIN_AGE}+ to host. We never show your birthday.</span>
+                </label>
+                <label className="check">
+                  <input type="checkbox" checked={hideAge} onChange={(e) => setHideAge(e.target.checked)} />
+                  <span>Hide my age on my profile</span>
+                </label>
+              </>
+            )}
 
             {error && <p className="error" role="alert">{error}</p>}
             {unconfirmed && <button type="button" className="linkish" onClick={resend} disabled={busy}>Resend confirmation email</button>}
@@ -126,7 +147,7 @@ export default function SignIn() {
 
             {mode === 'signin' && <button type="button" className="linkish" onClick={() => switchMode('forgot')}>Forgot password?</button>}
             {mode === 'forgot' && <button type="button" className="linkish" onClick={() => switchMode('signin')}>Back to sign in</button>}
-            {mode === 'signup' && <p className="small muted">You must be 18 or older to use Out &amp; About.</p>}
+            {mode === 'signup' && <p className="small muted">By creating an account you confirm the date of birth above is true.</p>}
           </form>
         </>
       )}

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
-import { ACCESS, CATEGORIES, RAIN_PLANS, SIZES, TAGS } from '../lib/constants.js';
+import { ACCESS, CATEGORIES, HOST_MIN_AGE, RAIN_PLANS, REQUIRE_VERIFIED_FOR_HOME_EVENTS, SIZES, TAGS } from '../lib/constants.js';
 import { defaultStart } from '../lib/format.js';
 import { ChipGroup } from '../components/Chip.jsx';
 import { LocationPicker } from '../components/MapView.jsx';
@@ -11,7 +11,14 @@ export default function HostPage() {
   const { profile } = useAuth();
   const nav = useNavigate();
   const [params] = useSearchParams();
-  const verified = Boolean(profile?.verified);
+  const canHostAtHome = !REQUIRE_VERIFIED_FOR_HOME_EVENTS || Boolean(profile?.verified);
+  const [oldEnough, setOldEnough] = useState(null); // null = checking
+
+  useEffect(() => {
+    let live = true;
+    supabase.rpc('is_21').then(({ data }) => { if (live) setOldEnough(Boolean(data)); });
+    return () => { live = false; };
+  }, []);
 
   const [f, setF] = useState({
     title: params.get('title') || '',
@@ -55,6 +62,17 @@ export default function HostPage() {
     nav(`/events/${data.id}`);
   };
 
+  if (oldEnough === null) return <p className="pad muted">Loading…</p>;
+  if (!oldEnough) {
+    return (
+      <div className="pad narrow">
+        <h1 className="page-title">Hosting is {HOST_MIN_AGE}+</h1>
+        <p>You need to be {HOST_MIN_AGE} or older to host a gathering on Out &amp; About. You can still RSVP, join circles, and meet people.</p>
+        <p><Link to="/" className="btn btn-primary">Find something to go to</Link></p>
+      </div>
+    );
+  }
+
   return (
     <form className="pad form narrow" onSubmit={submit}>
       <h1 className="page-title">Host a gathering</h1>
@@ -83,10 +101,10 @@ export default function HostPage() {
           <input required value={f.area_label} onChange={onInput('area_label')} placeholder="Zilker Park, Great Lawn" />
         </label>
         <label className="check">
-          <input type="checkbox" checked={f.is_private_location} onChange={onInput('is_private_location')} disabled={!verified} />
+          <input type="checkbox" checked={f.is_private_location} onChange={onInput('is_private_location')} disabled={!canHostAtHome} />
           It's at a home. Hide the exact address until people RSVP.
         </label>
-        {!verified && <p className="small muted">Home gatherings unlock once you're a verified host. During the beta, our team verifies hosts by hand.</p>}
+        {!canHostAtHome && <p className="small muted">Home gatherings unlock once you're a verified host. During the beta, our team verifies hosts by hand.</p>}
         {f.is_private_location && (
           <label className="field">Exact address (only RSVP'd guests see this)
             <input value={f.address} onChange={onInput('address')} placeholder="Street address" />

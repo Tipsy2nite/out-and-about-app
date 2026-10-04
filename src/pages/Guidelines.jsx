@@ -16,7 +16,7 @@ export default function Guidelines() {
         <li><strong>Speak up.</strong> If something feels off, leave and report it. In an emergency, call 911 first.</li>
       </ol>
       <h2>Host agreement</h2>
-      <p>By posting a gathering, you agree that your details are accurate; you're responsible for your gathering, including cleanup, laws, park rules, and permits; you won't sell alcohol or include it in any price; you'll keep home addresses private until RSVP; you'll post a rain plan and update guests if plans change; and you'll treat guests fairly. Each child at a gathering is supervised by their own parent or guardian.</p>
+      <p>Hosts must be 21 or older. By posting a gathering, you agree that your details are accurate; you're responsible for your gathering, including cleanup, laws, park rules, and permits; you won't sell alcohol or include it in any price; you'll keep home addresses private until RSVP; you'll post a rain plan and update guests if plans change; and you'll treat guests fairly. Each child at a gathering is supervised by their own parent or guardian.</p>
       <h2>Safety tips</h2>
       <ul>
         <li>Try public-place gatherings first, and tell a friend where you'll be.</li>
