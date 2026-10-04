@@ -283,4 +283,5 @@ grant execute on function public.event_stats(uuid), public.event_guests(uuid),
   public.is_host(uuid), public.is_member(uuid), public.is_verified() to anon, authenticated;
 
 
--- Later changes: run supabase/2026-10-04_hosting_21_plus.sql after this file.
+-- Later changes: run supabase/2026-10-04_hosting_21_plus.sql, then
+-- supabase/2026-10-04_host_reviews.sql, after this file.
