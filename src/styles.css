@@ -100,6 +100,17 @@ legend { font-weight: 700; margin-bottom: 8px; font-size: .95rem; }
 .tile { display: flex; flex-direction: column; gap: 2px; padding: 16px; min-height: 88px; border: 2px solid var(--ink); border-radius: var(--radius); text-decoration: none; box-shadow: var(--shadow); }
 .tile strong { font-family: var(--display); font-size: 1.3rem; }
 .tile-moms { background: var(--moms); } .tile-dads { background: var(--dads); }
+.for-label { margin: 0 0 6px; }
+.for-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 6px; }
+.tile-btn { font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
+.tile span { font-size: .9rem; }
+.tile-on { outline: 3px solid var(--sun); outline-offset: 2px; box-shadow: 5px 5px 0 var(--ink); }
+.for-showing { margin: 4px 0 0; }
+@media (max-width: 600px) {
+  .for-tiles { display: flex; overflow-x: auto; scroll-snap-type: x proximity; padding: 2px 6px 8px 2px; margin: 0 -16px 6px 0; }
+  .for-tiles .tile { flex: 0 0 150px; min-height: 76px; scroll-snap-align: start; }
+  .for-tiles .tile strong { font-size: 1.1rem; }
+}
 .ticket-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
 .ticket { display: flex; border: 2px solid var(--ink); border-radius: 20px; background: var(--card); overflow: hidden; box-shadow: var(--shadow); text-decoration: none; }
 .ticket-stub { width: 78px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 2px dashed var(--ink); padding: 12px 0; font-weight: 700; font-size: .78rem; letter-spacing: 1px; }
