@@ -11,7 +11,22 @@ export const SIZES = [
   ['Crowd', 'Crowd · 40+'],
 ];
 
-export const TAGS = ['Kid-friendly', 'Dog-friendly', 'Sober-friendly', 'Beginner-friendly', 'Adults only', 'Bring a chair'];
+export const TAGS = ['Kid-friendly', 'Dog-friendly', 'Sober-friendly', 'Beginner-friendly', 'Come solo', 'New to Austin welcome', 'Adults only', 'Bring a chair'];
+
+// "Who's it for?" tiles on the front page. Each one filters the gatherings below it.
+// match() decides which gatherings show for that tile.
+export const AUDIENCES = [
+  { key: 'friends', title: 'For friends', blurb: 'Round up the group chat', tint: '#F9DCCB',
+    match: (e) => ['Parties', 'Music', 'Parks'].includes(e.category) },
+  { key: 'fun', title: 'For fun', blurb: 'Music, games, good times', tint: '#E6DDF3',
+    match: (e) => ['Music', 'Parties', 'Niche'].includes(e.category) },
+  { key: 'families', title: 'For families', blurb: 'Bring the kids along', tint: '#DCEBD6',
+    match: (e) => e.category === 'Families' || e.tags.includes('Kid-friendly') },
+  { key: 'new-friends', title: 'Making new friends', blurb: 'Open invites, come solo', tint: '#F5E6B3',
+    match: (e) => e.open_invite && (e.tags.includes('Come solo') || e.tags.includes('Beginner-friendly') || e.category === 'Community' || e.size !== 'Crowd') },
+  { key: 'new-to-austin', title: 'New to Austin', blurb: 'Find your spots and people', tint: '#CDEBE4',
+    match: (e) => e.open_invite && (e.tags.includes('New to Austin welcome') || e.tags.includes('Come solo') || e.category === 'Community' || e.category === 'Parks') },
+];
 
 export const VIBES = ['Parks & picnics', 'Live music', 'Open-invite parties', 'Community days', 'Quiet hangs', 'Games & hobbies', 'Outdoor wellness', 'Family-friendly', 'Late-night'];
 
