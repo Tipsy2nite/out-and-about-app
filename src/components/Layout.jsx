@@ -1,4 +1,5 @@
 import { NavLink, Link, Outlet } from 'react-router-dom';
+import Avatar from './Avatar.jsx';
 import { useAuth } from '../lib/auth.jsx';
 
 const NAV = [
@@ -36,7 +37,7 @@ export default function Layout() {
         </nav>
         <div className="topbar-end">
           {user
-            ? <NavLink to="/me" className="avatar-btn" aria-label="My stuff">{(profile?.display_name || 'Y').charAt(0)}</NavLink>
+            ? <NavLink to="/me" className="avatar-btn-link" aria-label="My stuff"><Avatar name={profile?.display_name || 'You'} url={profile?.avatar_url} className="avatar-btn" /></NavLink>
             : <Link to="/signin" className="btn btn-primary btn-sm">Sign in</Link>}
         </div>
       </header>
