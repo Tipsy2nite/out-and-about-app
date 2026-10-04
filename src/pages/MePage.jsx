@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
-import { PROJECT_EMAIL, STAGES, VIBES } from '../lib/constants.js';
+import { COVER_COLORS, DISLIKE_SUGGESTIONS, LIKE_SUGGESTIONS, PROJECT_EMAIL, SPOT_SUGGESTIONS, STAGES, VIBES } from '../lib/constants.js';
 import { timeAgo } from '../lib/format.js';
 import { ChipGroup } from '../components/Chip.jsx';
 import EventCard from '../components/EventCard.jsx';
+import TagInput from '../components/TagInput.jsx';
 
 export default function MePage() {
   const { user, profile, refreshProfile, signOut } = useAuth();
@@ -24,6 +25,11 @@ export default function MePage() {
       vibes: profile.vibes, parent_role: profile.parent_role || '', kids_stages: profile.kids_stages,
       show_in_parent_finder: profile.show_in_parent_finder, hide_from_guest_lists: profile.hide_from_guest_lists,
       hide_age: Boolean(profile.hide_age),
+      pronouns: profile.pronouns || '', hometown: profile.hometown || '', work: profile.work || '',
+      austin_since: profile.austin_since ? String(profile.austin_since) : '',
+      languages: profile.languages || [], likes: profile.likes || [], dislikes: profile.dislikes || [],
+      favorite_spots: profile.favorite_spots || [], perfect_weekend: profile.perfect_weekend || '',
+      ask_me_about: profile.ask_me_about || '', cover_color: profile.cover_color || '',
     });
   }, [profile]);
 
@@ -60,12 +66,17 @@ export default function MePage() {
   }, [user]);
 
   if (!f) return null;
+  const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
   const save = async (e) => {
     e.preventDefault();
     setSaved('');
     const { error } = await supabase.from('profiles').update({
       ...f, parent_role: f.parent_role || null, neighborhood: f.neighborhood || null, bio: f.bio || null,
+      pronouns: f.pronouns.trim() || null, hometown: f.hometown.trim() || null, work: f.work.trim() || null,
+      austin_since: f.austin_since ? Number(f.austin_since) : null,
+      perfect_weekend: f.perfect_weekend.trim() || null, ask_me_about: f.ask_me_about.trim() || null,
+      cover_color: f.cover_color || null,
     }).eq('id', user.id);
     const { error: e2 } = await supabase.from('profile_private').update({ trusted_contact_email: trusted || null }).eq('user_id', user.id);
     setSaved(error || e2 ? `Didn't save: ${(error || e2).message}` : 'Saved.');
@@ -114,11 +125,38 @@ export default function MePage() {
       </section>
 
       <form className="stack form" onSubmit={save}>
-        <h2>Profile</h2>
+        <div className="row-between"><h2>Profile</h2><Link to={`/people/${user.id}`} className="small strong">View my profile</Link></div>
         <label className="field">Name<input required value={f.display_name} onChange={(e) => setF({ ...f, display_name: e.target.value })} /></label>
         <label className="field">Neighborhood<input value={f.neighborhood} onChange={(e) => setF({ ...f, neighborhood: e.target.value })} /></label>
         <label className="field">About you<textarea rows={3} maxLength={500} value={f.bio} onChange={(e) => setF({ ...f, bio: e.target.value })} /></label>
         <fieldset><legend>My vibes</legend><ChipGroup multi options={VIBES} value={f.vibes} onChange={(v) => setF({ ...f, vibes: v })} /></fieldset>
+
+        <h2 className="about-head">About me</h2>
+        <p className="small muted" style={{ marginTop: -8 }}>All optional. Members who are signed in can see these on your profile.</p>
+        <label className="field">Pronouns<input maxLength={30} value={f.pronouns} onChange={set('pronouns')} placeholder="she/her, he/him, they/them…" /></label>
+        <label className="field">Where are you from?<input maxLength={60} value={f.hometown} onChange={set('hometown')} placeholder="San Antonio, TX" /></label>
+        <label className="field">In Austin since (year)<input type="number" inputMode="numeric" min={1930} max={new Date().getFullYear()} value={f.austin_since} onChange={set('austin_since')} placeholder="2019" /></label>
+        <label className="field">What do you do?<input maxLength={80} value={f.work} onChange={set('work')} placeholder="Teacher at…, nurse, student at UT, retired…" /></label>
+        <TagInput label="Languages" value={f.languages} onChange={(v) => setF({ ...f, languages: v })} max={8} maxLength={24}
+          suggestions={['English', 'Spanish', 'ASL', 'Vietnamese', 'Mandarin', 'Hindi', 'French']} placeholder="Add a language" />
+        <TagInput label="Likes" hint="Things you're into. Press Enter after each one." value={f.likes} onChange={(v) => setF({ ...f, likes: v })} max={20}
+          suggestions={LIKE_SUGGESTIONS} placeholder="Tacos, birding, 90s R&B…" />
+        <TagInput label="Not my thing" hint="Helps hosts and new friends know what to skip." value={f.dislikes} onChange={(v) => setF({ ...f, dislikes: v })} max={20}
+          suggestions={DISLIKE_SUGGESTIONS} placeholder="Cilantro, loud bars…" />
+        <TagInput label="Favorite spots to visit" value={f.favorite_spots} onChange={(v) => setF({ ...f, favorite_spots: v })} max={15} maxLength={60}
+          suggestions={SPOT_SUGGESTIONS} placeholder="Parks, patios, trails, shops…" />
+        <label className="field">My perfect Austin weekend
+          <textarea rows={2} maxLength={280} value={f.perfect_weekend} onChange={set('perfect_weekend')} placeholder="Breakfast tacos, a swim at Barton Springs, then live music on the east side." /></label>
+        <label className="field">Ask me about
+          <input maxLength={140} value={f.ask_me_about} onChange={set('ask_me_about')} placeholder="My sourdough starter, the best swimming holes…" /></label>
+        <fieldset><legend>Profile cover color</legend>
+          <div className="swatches" role="radiogroup" aria-label="Profile cover color">
+            {COVER_COLORS.map((c) => (
+              <button key={c} type="button" role="radio" aria-checked={f.cover_color === c} aria-label={`Cover color ${c}`}
+                className="swatch" style={{ background: c }} onClick={() => setF({ ...f, cover_color: c })} />
+            ))}
+          </div>
+        </fieldset>
         <fieldset><legend>Parent hubs</legend>
           <ChipGroup options={[['', 'Not a parent'], ['mom', 'Mom'], ['dad', 'Dad']]} value={f.parent_role} onChange={(v) => setF({ ...f, parent_role: v })} />
           {f.parent_role && <>
