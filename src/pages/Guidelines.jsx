@@ -9,6 +9,7 @@ export default function Guidelines() {
         <li><strong>Be who you say you are.</strong> Real name, one account, no impersonation.</li>
         <li><strong>Respect everyone.</strong> No harassment, hate, threats, or discrimination based on who someone is.</li>
         <li><strong>Consent comes first.</strong> Gatherings are social, not dating services. Unwanted advances or messages after someone says no will get you removed.</li>
+        <li><strong>Profile photos show just you.</strong> Use a real, recent photo of yourself. No kids, no other people, no nudity, and nothing you don't have the rights to. Photos that break this get removed.</li>
         <li><strong>Review honestly and kindly.</strong> After a gathering, guests can rate the host. Talk about the experience, not the person's looks or identity. Reviews that harass, threaten, or share private details get removed.</li>
         <li><strong>Keep private things private.</strong> Don't share a host's address, other guests' details, or photos of people (especially children) who didn't agree to be posted.</li>
         <li><strong>No selling or scamming.</strong> No spam, fake events, or collecting money for events that don't exist.</li>

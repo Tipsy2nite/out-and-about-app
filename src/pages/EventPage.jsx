@@ -7,6 +7,7 @@ import { eventDateParts } from '../lib/format.js';
 import WeatherBox from '../components/WeatherBox.jsx';
 import ReportButton from '../components/ReportButton.jsx';
 import ReviewBox from '../components/ReviewBox.jsx';
+import Avatar from '../components/Avatar.jsx';
 import { HostRating } from '../components/Stars.jsx';
 
 const STATUS_TEXT = { moved: 'Moved', postponed: 'Postponed', cancelled: 'Cancelled' };
@@ -28,7 +29,7 @@ export default function EventPage() {
 
   const load = useCallback(async () => {
     const { data } = await supabase.from('events')
-      .select('*, host:profiles!events_host_id_fkey(id, display_name, verified)').eq('id', id).maybeSingle();
+      .select('*, host:profiles!events_host_id_fkey(id, display_name, verified, avatar_url)').eq('id', id).maybeSingle();
     setEv(data ?? null);
     if (!data) return;
     const { data: hr } = await supabase.rpc('host_ratings', { hids: [data.host_id] });
@@ -113,7 +114,7 @@ export default function EventPage() {
 
           {ev.host && (
             <Link to={`/people/${ev.host.id}`} className="row-card">
-              <span className="avatar">{ev.host.display_name.charAt(0)}</span>
+              <Avatar name={ev.host.display_name} url={ev.host.avatar_url} />
               <span><span className="muted small">Hosted by</span><br /><strong>{ev.host.display_name}</strong><br />
                 <HostRating rating={hostRating} /><br />
                 <span className="small">{ev.host.verified ? 'Verified host' : 'Not verified yet'}</span></span>

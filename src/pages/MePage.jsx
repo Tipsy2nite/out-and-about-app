@@ -7,6 +7,8 @@ import { timeAgo } from '../lib/format.js';
 import { ChipGroup } from '../components/Chip.jsx';
 import EventCard from '../components/EventCard.jsx';
 import TagInput from '../components/TagInput.jsx';
+import Avatar from '../components/Avatar.jsx';
+import PhotoPicker from '../components/PhotoPicker.jsx';
 
 export default function MePage() {
   const { user, profile, refreshProfile, signOut } = useAuth();
@@ -88,7 +90,7 @@ export default function MePage() {
   return (
     <div className="pad me-grid">
       <section className="stack">
-        <div className="row"><span className="avatar avatar-xl">{profile.display_name.charAt(0)}</span>
+        <div className="row"><Avatar name={profile.display_name} url={profile.avatar_url} className="avatar avatar-xl" />
           <div><h1 className="page-title">{profile.display_name}</h1>
             <p className="small">{profile.verified ? 'Verified' : 'Not verified yet'} · {plans.length} plans · {circles.length} circles</p></div></div>
         {!profile.verified && (
@@ -126,6 +128,7 @@ export default function MePage() {
 
       <form className="stack form" onSubmit={save}>
         <div className="row-between"><h2>Profile</h2><Link to={`/people/${user.id}`} className="small strong">View my profile</Link></div>
+        <PhotoPicker />
         <label className="field">Name<input required value={f.display_name} onChange={(e) => setF({ ...f, display_name: e.target.value })} /></label>
         <label className="field">Neighborhood<input value={f.neighborhood} onChange={(e) => setF({ ...f, neighborhood: e.target.value })} /></label>
         <label className="field">About you<textarea rows={3} maxLength={500} value={f.bio} onChange={(e) => setF({ ...f, bio: e.target.value })} /></label>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Avatar from '../components/Avatar.jsx';
 import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
@@ -19,7 +20,7 @@ function ParentFinder({ role }) {
     if (!user) return;
     (async () => {
       const { data } = await supabase.from('profiles')
-        .select('id, display_name, neighborhood, kids_stages, vibes')
+        .select('id, display_name, neighborhood, kids_stages, vibes, avatar_url')
         .eq('parent_role', role).eq('show_in_parent_finder', true).neq('id', user.id).limit(60);
       setPeople(data || []);
       const { data: w } = await supabase.from('waves').select('to_id').eq('from_id', user.id);
@@ -46,7 +47,7 @@ function ParentFinder({ role }) {
       <div className="person-grid">
         {shown.map((p) => (
           <div key={p.id} className="person">
-            <Link to={`/people/${p.id}`} className="row"><span className="avatar">{p.display_name.charAt(0)}</span>
+            <Link to={`/people/${p.id}`} className="row"><Avatar name={p.display_name} url={p.avatar_url} />
               <span><strong>{p.display_name}</strong><br /><span className="small">{[p.kids_stages.join(', '), p.neighborhood].filter(Boolean).join(' · ')}</span></span></Link>
             {p.vibes.length > 0 && <p className="small muted">Into: {p.vibes.slice(0, 3).join(', ')}</p>}
             <button type="button" className={waved.has(p.id) ? 'btn btn-dark btn-sm' : 'btn btn-primary btn-sm'} disabled={waved.has(p.id)} onClick={() => wave(p)}>

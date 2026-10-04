@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
 import EventCard from '../components/EventCard.jsx';
 import ReportButton from '../components/ReportButton.jsx';
+import Avatar from '../components/Avatar.jsx';
 import { HostRating, Stars } from '../components/Stars.jsx';
 
 const lower = (list) => (list || []).map((x) => x.toLowerCase());
@@ -83,7 +84,7 @@ export default function PersonPage() {
     <div className="profile">
       <div className="profile-cover" style={{ background: p.cover_color || 'var(--leaf)' }} aria-hidden="true" />
       <div className="profile-id">
-        <span className="avatar">{p.display_name.charAt(0)}</span>
+        <Avatar name={p.display_name} url={p.avatar_url} alt={`${p.display_name}'s profile photo`} />
         <div className="profile-name">
           <h1>{p.display_name}</h1>
           <p className="small" style={{ margin: 0 }}>
