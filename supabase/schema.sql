@@ -281,3 +281,6 @@ $$;
 grant execute on function public.event_stats(uuid), public.event_guests(uuid),
   public.familiar_faces(uuid), public.circle_counts(), public.is_going(uuid),
   public.is_host(uuid), public.is_member(uuid), public.is_verified() to anon, authenticated;
+
+
+-- Later changes: run supabase/2026-10-04_hosting_21_plus.sql after this file.
