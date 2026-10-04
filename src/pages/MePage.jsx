@@ -16,6 +16,7 @@ export default function MePage() {
   const [circles, setCircles] = useState([]);
   const [waves, setWaves] = useState([]);
   const [saved, setSaved] = useState('');
+  const [toRate, setToRate] = useState([]);
 
   useEffect(() => {
     setF({
@@ -42,6 +43,19 @@ export default function MePage() {
       setCircles((c || []).map((x) => x.circle).filter(Boolean));
       setWaves(w || []);
       setTrusted(p?.trusted_contact_email || '');
+
+      // Gatherings you went to in the last 30 days that you haven't rated yet
+      const hourAgo = new Date(Date.now() - 3600000).toISOString();
+      const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString();
+      const [{ data: past }, { data: done }] = await Promise.all([
+        supabase.from('rsvps').select('event:events!inner(id, title, starts_at, host_id, status, host:profiles!events_host_id_fkey(display_name))')
+          .eq('user_id', user.id).lte('event.starts_at', hourAgo).gte('event.starts_at', monthAgo),
+        supabase.from('host_reviews').select('event_id').eq('reviewer_id', user.id),
+      ]);
+      const reviewed = new Set((done || []).map((d) => d.event_id));
+      setToRate((past || []).map((x) => x.event)
+        .filter((e) => e && e.host_id !== user.id && e.status !== 'cancelled' && !reviewed.has(e.id))
+        .sort((a, b) => b.starts_at.localeCompare(a.starts_at)));
     })();
   }, [user]);
 
@@ -69,6 +83,17 @@ export default function MePage() {
         {!profile.verified && (
           <div className="panel"><h3>Get verified</h3>
             <p className="small">Verified people get a badge so others know our team has confirmed who they are. During the beta, our team verifies people by hand. Email <a href={`mailto:${PROJECT_EMAIL}?subject=Verify%20me`}>{PROJECT_EMAIL}</a> to start.</p></div>
+        )}
+        {toRate.length > 0 && (
+          <div className="panel panel-review"><h3>How did it go?</h3>
+            <p className="small">Rate your hosts so newcomers know who throws a great gathering.</p>
+            <ul className="stack" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {toRate.map((e) => (
+                <li key={e.id}><Link to={`/events/${e.id}`}><strong>{e.title}</strong></Link>
+                  <span className="small muted"> · hosted by {e.host?.display_name || 'a host'}</span> · <Link to={`/events/${e.id}`} className="small strong">Rate ★</Link></li>
+              ))}
+            </ul>
+          </div>
         )}
         {watch.length > 0 && (
           <div className="panel panel-watch"><strong>Plans changed:</strong> {watch.map((e) => `${e.title} (${e.status})`).join(', ')}. Open the gathering for details.</div>

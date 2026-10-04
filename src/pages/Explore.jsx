@@ -6,6 +6,7 @@ import MapView from '../components/MapView.jsx';
 import Chip from '../components/Chip.jsx';
 import { AUDIENCES, CATEGORIES } from '../lib/constants.js';
 import { useAuth } from '../lib/auth.jsx';
+import useHostRatings from '../lib/useHostRatings.js';
 
 export default function Explore() {
   const { user } = useAuth();
@@ -15,7 +16,9 @@ export default function Explore() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [stepFree, setStepFree] = useState(false);
   const [quiet, setQuiet] = useState(false);
-  const [aud, setAud] = useState(null); // key from AUDIENCES, or null for everything
+  const [aud, setAud] = useState(null);
+  const [wellReviewed, setWellReviewed] = useState(false);
+  const ratings = useHostRatings((events || []).map((e) => e.host_id)); // key from AUDIENCES, or null for everything
 
   const shown = useMemo(() => (events || []).filter((e) => {
     const q = query.trim().toLowerCase();
@@ -23,10 +26,11 @@ export default function Explore() {
     return (cat === 'All' || e.category === cat)
       && (!lens || lens.match(e))
       && (!verifiedOnly || e.host?.verified)
+      && (!wellReviewed || (ratings[e.host_id]?.review_count > 0 && Number(ratings[e.host_id].avg_rating) >= 4))
       && (!stepFree || e.access_entry === 'Step-free')
       && (!quiet || e.access_noise === 'Quiet')
       && (!q || `${e.title} ${e.area_label} ${e.category} ${e.tags.join(' ')}`.toLowerCase().includes(q));
-  }), [events, cat, query, verifiedOnly, stepFree, quiet, aud]);
+  }), [events, cat, query, verifiedOnly, stepFree, quiet, aud, wellReviewed, ratings]);
 
   return (
     <div className="explore">
@@ -60,13 +64,14 @@ export default function Explore() {
         <div className="chips scroll-x">
           {['All', ...CATEGORIES].map((c) => <Chip key={c} on={cat === c} onClick={() => setCat(c)}>{c}</Chip>)}
           {user && <Chip on={verifiedOnly} onClick={() => setVerifiedOnly(!verifiedOnly)}>Verified hosts</Chip>}
+          <Chip on={wellReviewed} onClick={() => setWellReviewed(!wellReviewed)}>★ 4+ hosts</Chip>
           <Chip on={stepFree} onClick={() => setStepFree(!stepFree)}>Step-free</Chip>
           <Chip on={quiet} onClick={() => setQuiet(!quiet)}>Quiet</Chip>
         </div>
         {error && <p className="error">Couldn't load gatherings: {error}</p>}
         {events === null && <p className="muted">Loading gatherings…</p>}
         <div className="ticket-grid">
-          {shown.map((e) => <EventCard key={e.id} event={e} going={goingIds.has(e.id)} />)}
+          {shown.map((e) => <EventCard key={e.id} event={e} going={goingIds.has(e.id)} rating={ratings[e.host_id]} />)}
         </div>
         {events && shown.length === 0 && (
           <div className="empty">

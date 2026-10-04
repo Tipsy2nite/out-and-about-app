@@ -6,6 +6,8 @@ import { TINTS } from '../lib/constants.js';
 import { eventDateParts } from '../lib/format.js';
 import WeatherBox from '../components/WeatherBox.jsx';
 import ReportButton from '../components/ReportButton.jsx';
+import ReviewBox from '../components/ReviewBox.jsx';
+import { HostRating } from '../components/Stars.jsx';
 
 const STATUS_TEXT = { moved: 'Moved', postponed: 'Postponed', cancelled: 'Cancelled' };
 
@@ -22,12 +24,15 @@ export default function EventPage() {
   const [trusted, setTrusted] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
+  const [hostRating, setHostRating] = useState(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase.from('events')
       .select('*, host:profiles!events_host_id_fkey(id, display_name, verified)').eq('id', id).maybeSingle();
     setEv(data ?? null);
     if (!data) return;
+    const { data: hr } = await supabase.rpc('host_ratings', { hids: [data.host_id] });
+    setHostRating(hr?.[0] ?? null);
     const { data: s } = await supabase.rpc('event_stats', { eid: id });
     if (s?.[0]) setStats(s[0]);
     if (user) {
@@ -54,6 +59,9 @@ export default function EventPage() {
   const d = eventDateParts(ev.starts_at);
   const isHost = user && ev.host_id === user.id;
   const cancelled = ev.status === 'cancelled';
+  const startedAgo = Date.now() - new Date(ev.starts_at).getTime();
+  const ended = startedAgo > 3 * 3600000;
+  const canReview = user && going && !isHost && !cancelled && startedAgo >= 3600000 && startedAgo <= 30 * 86400000;
 
   const toggleRsvp = async () => {
     if (!user) return nav('/signin', { state: { from: `/events/${id}` } });
@@ -107,14 +115,18 @@ export default function EventPage() {
             <Link to={`/people/${ev.host.id}`} className="row-card">
               <span className="avatar">{ev.host.display_name.charAt(0)}</span>
               <span><span className="muted small">Hosted by</span><br /><strong>{ev.host.display_name}</strong><br />
-                <span className="small">{ev.host.verified ? 'Verified host' : 'New host, not verified yet'}</span></span>
+                <HostRating rating={hostRating} /><br />
+                <span className="small">{ev.host.verified ? 'Verified host' : 'Not verified yet'}</span></span>
             </Link>
           )}
+
+          {canReview && <ReviewBox event={ev} onSaved={load} />}
 
           {ev.description && <p className="prose">{ev.description}</p>}
           {ev.tags.length > 0 && <div className="chips">{ev.tags.map((t) => <span key={t} className="pill">{t}</span>)}</div>}
 
-          {!isHost && (
+          {!isHost && ended && <p className="muted">This gathering has wrapped up.</p>}
+          {!isHost && !ended && (
             <button type="button" className={going ? 'btn btn-dark btn-wide' : 'btn btn-primary btn-wide'} onClick={toggleRsvp} disabled={busy || (cancelled && !going)}>
               {cancelled ? 'This gathering is cancelled' : going ? "You're in! (tap to cancel your RSVP)" : "I'm going"}
             </button>
@@ -168,7 +180,10 @@ export default function EventPage() {
 
           <section className="panel panel-safe">
             <h3>Safety</h3>
-            <p className="small">{ev.host?.verified ? 'Verified host: identity confirmed by our team.' : 'New host: not verified yet. Stick to public spots and bring a friend.'}</p>
+            <p className="small">{ev.host?.verified ? 'Verified host: identity confirmed by our team.' : 'Host not verified yet. Stick to public spots and bring a friend.'}</p>
+            <p className="small">{hostRating?.review_count > 0
+              ? `${ev.host?.display_name || 'This host'} has ${hostRating.review_count} review${Number(hostRating.review_count) === 1 ? '' : 's'} from past guests. Read them on their profile.`
+              : 'This host has no reviews yet. First-time hosts are welcome, so bring a friend if you like.'}</p>
             <p className="small">{ev.is_private_location ? 'Private home. The address is only shown to people who RSVP.' : 'Public place, open to everyone.'}</p>
             {user && <a className="btn btn-outline btn-sm" href={shareHref}>Tell a friend where you'll be</a>}
             <ReportButton targetType="event" targetId={ev.id} label="Report this gathering" />
