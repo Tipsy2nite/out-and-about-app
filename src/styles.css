@@ -182,3 +182,18 @@ legend { font-weight: 700; margin-bottom: 8px; font-size: .95rem; }
   .access { grid-template-columns: 1fr 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
+
+/* Host ratings */
+.stars { color: var(--sun); letter-spacing: 1px; -webkit-text-stroke: .6px var(--ink); }
+.stars-off { color: transparent; }
+.stars-lg { font-size: 1.4rem; }
+.rating { display: inline-flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+.star-picker { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.star-btn { width: 44px; height: 44px; font-size: 1.9rem; line-height: 1; border: none; background: none; cursor: pointer; color: transparent; -webkit-text-stroke: 1.2px var(--ink); padding: 0; }
+.star-btn.star-on { color: var(--sun); }
+.star-btn:focus-visible { outline: 3px solid var(--ink); border-radius: 8px; }
+.panel-review { background: #FFF6E3; }
+.review-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.review { padding: 12px 14px; border: 1.5px solid var(--rule); border-radius: var(--radius); background: var(--card); }
+.review p { margin: 4px 0; }
+.pill-star { background: #FFF1D6; }
