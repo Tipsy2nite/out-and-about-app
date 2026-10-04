@@ -43,3 +43,19 @@ export function circleLevel(members) {
   if (members >= 15) return 'Grove';
   return 'Sprout';
 }
+
+// Hosting rules
+export const MIN_AGE = 18;          // to join
+export const HOST_MIN_AGE = 21;     // to host any gathering
+// false = anyone 21+ can host at home. Set true (and run the REVERT block in
+// supabase/2026-10-04_hosting_21_plus.sql) to require hand-verified hosts again.
+export const REQUIRE_VERIFIED_FOR_HOME_EVENTS = false;
+
+export function ageFrom(dateStr) {
+  const b = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(b.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - b.getFullYear();
+  if (now.getMonth() < b.getMonth() || (now.getMonth() === b.getMonth() && now.getDate() < b.getDate())) age -= 1;
+  return age;
+}
