@@ -74,3 +74,9 @@ export function ageFrom(dateStr) {
   if (now.getMonth() < b.getMonth() || (now.getMonth() === b.getMonth() && now.getDate() < b.getDate())) age -= 1;
   return age;
 }
+
+// Profile "About me" helpers
+export const COVER_COLORS = ['#DCEBD6', '#F9DCCB', '#E6DDF3', '#D5E5F0', '#F5E6B3', '#FBD9E5', '#CDEBE4', '#F2A541'];
+export const LIKE_SUGGESTIONS = ['Picnics', 'Live music', 'Tacos', 'Dogs', 'Board games', 'Hiking', 'Kayaking', 'Coffee', 'Thrifting', 'Trivia', 'Yoga', 'Food trucks', 'Sunsets', 'Pickleball', 'Reading', 'Karaoke'];
+export const DISLIKE_SUGGESTIONS = ['Being late', 'Loud crowds', 'Small talk', 'Heat waves', 'Flaky plans', 'Traffic', 'Mosquitoes'];
+export const SPOT_SUGGESTIONS = ['Zilker Park', 'Barton Springs Pool', 'Lady Bird Lake trail', 'Mount Bonnell', 'Pease Park', 'Mueller Lake Park', 'Auditorium Shores', 'South Congress', 'Butler Park', 'McKinney Falls', 'Hamilton Pool', 'Mayfield Park', 'Republic Square', 'Walter E. Long Lake'];
