@@ -284,4 +284,5 @@ grant execute on function public.event_stats(uuid), public.event_guests(uuid),
 
 
 -- Later changes: run supabase/2026-10-04_hosting_21_plus.sql, then
--- supabase/2026-10-04_host_reviews.sql, after this file.
+-- supabase/2026-10-04_host_reviews.sql, then
+-- supabase/2026-10-04_richer_profiles.sql, after this file.
