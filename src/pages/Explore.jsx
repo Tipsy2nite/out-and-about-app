@@ -4,7 +4,7 @@ import useEvents from './useEvents.js';
 import EventCard from '../components/EventCard.jsx';
 import MapView from '../components/MapView.jsx';
 import Chip from '../components/Chip.jsx';
-import { CATEGORIES } from '../lib/constants.js';
+import { AUDIENCES, CATEGORIES } from '../lib/constants.js';
 import { useAuth } from '../lib/auth.jsx';
 
 export default function Explore() {
@@ -15,15 +15,18 @@ export default function Explore() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [stepFree, setStepFree] = useState(false);
   const [quiet, setQuiet] = useState(false);
+  const [aud, setAud] = useState(null); // key from AUDIENCES, or null for everything
 
   const shown = useMemo(() => (events || []).filter((e) => {
     const q = query.trim().toLowerCase();
+    const lens = AUDIENCES.find((a) => a.key === aud);
     return (cat === 'All' || e.category === cat)
+      && (!lens || lens.match(e))
       && (!verifiedOnly || e.host?.verified)
       && (!stepFree || e.access_entry === 'Step-free')
       && (!quiet || e.access_noise === 'Quiet')
       && (!q || `${e.title} ${e.area_label} ${e.category} ${e.tags.join(' ')}`.toLowerCase().includes(q));
-  }), [events, cat, query, verifiedOnly, stepFree, quiet]);
+  }), [events, cat, query, verifiedOnly, stepFree, quiet, aud]);
 
   return (
     <div className="explore">
@@ -31,15 +34,25 @@ export default function Explore() {
         {!user && (
           <section className="hero">
             <h1>Log off. Go outside. Bring friends.</h1>
-            <p>Park picnics, porch concerts, open-invite birthdays, and the delightfully specific meetups you didn't know existed.</p>
+            <p>Austin's place to plan and find things to do outside, for everyone. Park picnics, porch concerts, open-invite birthdays, and the delightfully specific meetups you didn't know existed.</p>
             <Link to="/signin" state={{ mode: 'signup' }} className="btn btn-primary">Join Out &amp; About</Link>
           </section>
         )}
         <h2 className="page-title">What's happening outside</h2>
-        <div className="parent-tiles">
+        <p className="small strong for-label">Who's it for?</p>
+        <div className="for-tiles" role="group" aria-label="Who's it for?">
+          {AUDIENCES.map((a) => (
+            <button key={a.key} type="button" className={`tile tile-btn${aud === a.key ? ' tile-on' : ''}`} style={{ background: a.tint }}
+              aria-pressed={aud === a.key} onClick={() => setAud(aud === a.key ? null : a.key)}>
+              <strong>{a.title}</strong><span>{a.blurb}</span>
+            </button>
+          ))}
           <Link to="/parents/moms" className="tile tile-moms"><strong>For moms</strong><span>Mom friends and meetups</span></Link>
           <Link to="/parents/dads" className="tile tile-dads"><strong>For dads</strong><span>Start a dad hang</span></Link>
         </div>
+        {aud && (
+          <p className="small for-showing">Showing: <strong>{AUDIENCES.find((a) => a.key === aud).title}</strong>. <button type="button" className="linkish" onClick={() => setAud(null)}>Show everything</button></p>
+        )}
         <label className="search">
           <span className="sr">Search gatherings</span>
           <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Picnics, jazz, chess, birthdays…" />
