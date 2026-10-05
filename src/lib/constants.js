@@ -80,3 +80,22 @@ export const COVER_COLORS = ['#DCEBD6', '#F9DCCB', '#E6DDF3', '#D5E5F0', '#F5E6B
 export const LIKE_SUGGESTIONS = ['Picnics', 'Live music', 'Tacos', 'Dogs', 'Board games', 'Hiking', 'Kayaking', 'Coffee', 'Thrifting', 'Trivia', 'Yoga', 'Food trucks', 'Sunsets', 'Pickleball', 'Reading', 'Karaoke'];
 export const DISLIKE_SUGGESTIONS = ['Being late', 'Loud crowds', 'Small talk', 'Heat waves', 'Flaky plans', 'Traffic', 'Mosquitoes'];
 export const SPOT_SUGGESTIONS = ['Zilker Park', 'Barton Springs Pool', 'Lady Bird Lake trail', 'Mount Bonnell', 'Pease Park', 'Mueller Lake Park', 'Auditorium Shores', 'South Congress', 'Butler Park', 'McKinney Falls', 'Hamilton Pool', 'Mayfield Park', 'Republic Square', 'Walter E. Long Lake'];
+
+// Discover: what people are looking for (shown as chips on their card)
+export const LOOKING_FOR = ['New friends', 'A friend group', 'Activity buddies', 'Parent friends', 'People new to town', 'Workout partners'];
+
+// How precisely others see where you are. Never an exact address.
+export const AREA_LEVELS = [
+  ['neighborhood', 'Neighborhood'],
+  ['city', 'City only'],
+  ['state', 'State only'],
+];
+
+// The part of someone's location they've chosen to share
+export function areaLabel(p) {
+  if (!p) return '';
+  const t = (s) => (s || '').trim();
+  if (p.area_level === 'state') return t(p.state);
+  if (p.area_level === 'city') return [t(p.city), t(p.state)].filter(Boolean).join(', ');
+  return [t(p.neighborhood), t(p.city)].filter(Boolean).join(', ');
+}
