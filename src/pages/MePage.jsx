@@ -14,6 +14,7 @@ export default function MePage() {
   const { user, profile, refreshProfile, signOut } = useAuth();
   const [f, setF] = useState(null);
   const [trusted, setTrusted] = useState('');
+  const [mail, setMail] = useState({ email_plan_changes: true, email_reminders: true, email_new_rsvps: true });
   const [plans, setPlans] = useState([]);
   const [hosting, setHosting] = useState([]);
   const [circles, setCircles] = useState([]);
@@ -43,7 +44,7 @@ export default function MePage() {
         supabase.from('events').select('*').eq('host_id', user.id).gte('starts_at', now).order('starts_at'),
         supabase.from('circle_members').select('circle:circles(id, name, rhythm)').eq('user_id', user.id),
         supabase.from('waves').select('created_at, from:profiles!waves_from_id_fkey(id, display_name)').eq('to_id', user.id).order('created_at', { ascending: false }),
-        supabase.from('profile_private').select('trusted_contact_email').eq('user_id', user.id).maybeSingle(),
+        supabase.from('profile_private').select('trusted_contact_email, email_plan_changes, email_reminders, email_new_rsvps').eq('user_id', user.id).maybeSingle(),
       ]);
       setPlans((r || []).map((x) => x.event).filter((e) => e && e.starts_at >= now && e.host_id !== user.id)
         .sort((a, b) => a.starts_at.localeCompare(b.starts_at)));
@@ -51,6 +52,7 @@ export default function MePage() {
       setCircles((c || []).map((x) => x.circle).filter(Boolean));
       setWaves(w || []);
       setTrusted(p?.trusted_contact_email || '');
+      if (p) setMail({ email_plan_changes: p.email_plan_changes !== false, email_reminders: p.email_reminders !== false, email_new_rsvps: p.email_new_rsvps !== false });
 
       // Gatherings you went to in the last 30 days that you haven't rated yet
       const hourAgo = new Date(Date.now() - 3600000).toISOString();
@@ -80,7 +82,7 @@ export default function MePage() {
       perfect_weekend: f.perfect_weekend.trim() || null, ask_me_about: f.ask_me_about.trim() || null,
       cover_color: f.cover_color || null,
     }).eq('id', user.id);
-    const { error: e2 } = await supabase.from('profile_private').update({ trusted_contact_email: trusted || null }).eq('user_id', user.id);
+    const { error: e2 } = await supabase.from('profile_private').update({ trusted_contact_email: trusted || null, ...mail }).eq('user_id', user.id);
     setSaved(error || e2 ? `Didn't save: ${(error || e2).message}` : 'Saved.');
     refreshProfile();
   };
@@ -174,6 +176,14 @@ export default function MePage() {
           Hide me from guest lists</label>
         <label className="check"><input type="checkbox" checked={f.hide_age} onChange={(e) => setF({ ...f, hide_age: e.target.checked })} />
           Hide my age on my profile</label>
+        <fieldset><legend>Email me when…</legend>
+          <label className="check"><input type="checkbox" checked={mail.email_plan_changes} onChange={(e) => setMail({ ...mail, email_plan_changes: e.target.checked })} />
+            A gathering I'm going to changes or is cancelled</label>
+          <label className="check"><input type="checkbox" checked={mail.email_reminders} onChange={(e) => setMail({ ...mail, email_reminders: e.target.checked })} />
+            The day before a gathering I'm going to or hosting</label>
+          <label className="check"><input type="checkbox" checked={mail.email_new_rsvps} onChange={(e) => setMail({ ...mail, email_new_rsvps: e.target.checked })} />
+            Someone RSVPs to a gathering I'm hosting</label>
+        </fieldset>
         <label className="field">Trusted contact's email (for "Tell a friend where you'll be")
           <input type="email" value={trusted} onChange={(e) => setTrusted(e.target.value)} /></label>
         <button type="submit" className="btn btn-primary">Save changes</button>
