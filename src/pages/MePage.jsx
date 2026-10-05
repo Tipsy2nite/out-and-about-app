@@ -2,12 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
-import { COVER_COLORS, DISLIKE_SUGGESTIONS, LIKE_SUGGESTIONS, PROJECT_EMAIL, SPOT_SUGGESTIONS, STAGES, VIBES } from '../lib/constants.js';
-import { timeAgo } from '../lib/format.js';
+import { COVER_COLORS, DISLIKE_SUGGESTIONS, LIKE_SUGGESTIONS, SPOT_SUGGESTIONS, STAGES, VIBES } from '../lib/constants.js';
 import { ChipGroup } from '../components/Chip.jsx';
-import EventCard from '../components/EventCard.jsx';
 import TagInput from '../components/TagInput.jsx';
-import Avatar from '../components/Avatar.jsx';
 import PhotoPicker from '../components/PhotoPicker.jsx';
 import DeleteAccount from '../components/DeleteAccount.jsx';
 import InstallApp from '../components/InstallApp.jsx';
@@ -17,12 +14,7 @@ export default function MePage() {
   const [f, setF] = useState(null);
   const [trusted, setTrusted] = useState('');
   const [mail, setMail] = useState({ email_plan_changes: true, email_reminders: true, email_new_rsvps: true });
-  const [plans, setPlans] = useState([]);
-  const [hosting, setHosting] = useState([]);
-  const [circles, setCircles] = useState([]);
-  const [waves, setWaves] = useState([]);
   const [saved, setSaved] = useState('');
-  const [toRate, setToRate] = useState([]);
 
   useEffect(() => {
     setF({
@@ -40,34 +32,10 @@ export default function MePage() {
 
   useEffect(() => {
     (async () => {
-      const now = new Date(Date.now() - 3 * 3600000).toISOString();
-      const [{ data: r }, { data: h }, { data: c }, { data: w }, { data: p }] = await Promise.all([
-        supabase.from('rsvps').select('event:events(*)').eq('user_id', user.id),
-        supabase.from('events').select('*').eq('host_id', user.id).gte('starts_at', now).order('starts_at'),
-        supabase.from('circle_members').select('circle:circles(id, name, rhythm)').eq('user_id', user.id),
-        supabase.from('waves').select('created_at, from:profiles!waves_from_id_fkey(id, display_name)').eq('to_id', user.id).order('created_at', { ascending: false }),
-        supabase.from('profile_private').select('trusted_contact_email, email_plan_changes, email_reminders, email_new_rsvps').eq('user_id', user.id).maybeSingle(),
-      ]);
-      setPlans((r || []).map((x) => x.event).filter((e) => e && e.starts_at >= now && e.host_id !== user.id)
-        .sort((a, b) => a.starts_at.localeCompare(b.starts_at)));
-      setHosting(h || []);
-      setCircles((c || []).map((x) => x.circle).filter(Boolean));
-      setWaves(w || []);
+      const { data: p } = await supabase.from('profile_private')
+        .select('trusted_contact_email, email_plan_changes, email_reminders, email_new_rsvps').eq('user_id', user.id).maybeSingle();
       setTrusted(p?.trusted_contact_email || '');
       if (p) setMail({ email_plan_changes: p.email_plan_changes !== false, email_reminders: p.email_reminders !== false, email_new_rsvps: p.email_new_rsvps !== false });
-
-      // Gatherings you went to in the last 30 days that you haven't rated yet
-      const hourAgo = new Date(Date.now() - 3600000).toISOString();
-      const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString();
-      const [{ data: past }, { data: done }] = await Promise.all([
-        supabase.from('rsvps').select('event:events!inner(id, title, starts_at, host_id, status, host:profiles!events_host_id_fkey(display_name))')
-          .eq('user_id', user.id).lte('event.starts_at', hourAgo).gte('event.starts_at', monthAgo),
-        supabase.from('host_reviews').select('event_id').eq('reviewer_id', user.id),
-      ]);
-      const reviewed = new Set((done || []).map((d) => d.event_id));
-      setToRate((past || []).map((x) => x.event)
-        .filter((e) => e && e.host_id !== user.id && e.status !== 'cancelled' && !reviewed.has(e.id))
-        .sort((a, b) => b.starts_at.localeCompare(a.starts_at)));
     })();
   }, [user]);
 
@@ -89,49 +57,14 @@ export default function MePage() {
     refreshProfile();
   };
 
-  const watch = plans.filter((e) => e.status !== 'scheduled');
-
   return (
-    <div className="pad me-grid">
-      <section className="stack">
-        <div className="row"><Avatar name={profile.display_name} url={profile.avatar_url} className="avatar avatar-xl" />
-          <div><h1 className="page-title">{profile.display_name}</h1>
-            <p className="small">{profile.verified ? 'Verified' : 'Not verified yet'} · {plans.length} plans · {circles.length} circles</p></div></div>
-        {!profile.verified && (
-          <div className="panel"><h3>Get verified</h3>
-            <p className="small">Verified people get a badge so others know our team has confirmed who they are. During the beta, our team verifies people by hand. Email <a href={`mailto:${PROJECT_EMAIL}?subject=Verify%20me`}>{PROJECT_EMAIL}</a> to start.</p></div>
-        )}
-        {toRate.length > 0 && (
-          <div className="panel panel-review"><h3>How did it go?</h3>
-            <p className="small">Rate your hosts so newcomers know who throws a great gathering.</p>
-            <ul className="stack" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {toRate.map((e) => (
-                <li key={e.id}><Link to={`/events/${e.id}`}><strong>{e.title}</strong></Link>
-                  <span className="small muted"> · hosted by {e.host?.display_name || 'a host'}</span> · <Link to={`/events/${e.id}`} className="small strong">Rate ★</Link></li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {watch.length > 0 && (
-          <div className="panel panel-watch"><strong>Plans changed:</strong> {watch.map((e) => `${e.title} (${e.status})`).join(', ')}. Open the gathering for details.</div>
-        )}
-        <h2>My plans</h2>
-        {plans.map((e) => <EventCard key={e.id} event={e} going />)}
-        {plans.length === 0 && <p className="muted">Your calendar is wide open. <Link to="/">Find something</Link>.</p>}
-        <h2>I'm hosting</h2>
-        {hosting.map((e) => <EventCard key={e.id} event={e} />)}
-        {hosting.length === 0 && <p className="muted"><Link to="/host">Host a gathering</Link></p>}
-        <h2>My circles</h2>
-        {circles.map((c) => <Link key={c.id} to={`/circles/${c.id}`} className="row-card"><span className="avatar">{c.name.charAt(0)}</span><span><strong>{c.name}</strong>{c.rhythm ? <><br /><span className="small">{c.rhythm}</span></> : null}</span></Link>)}
-        {circles.length === 0 && <p className="muted"><Link to="/circles">Find your people</Link></p>}
-        {waves.length > 0 && <>
-          <h2>Waves</h2>
-          {waves.map((w) => <p key={w.from?.id}><Link to={`/people/${w.from?.id}`}>{w.from?.display_name}</Link> said hi · {timeAgo(w.created_at)}</p>)}
-        </>}
-      </section>
-
+    <div className="pad narrow">
+      <div className="edit-head">
+        <Link to={`/people/${user.id}`} className="back">← Back to my profile</Link>
+        <h1 className="page-title">Edit profile &amp; settings</h1>
+      </div>
       <form className="stack form" onSubmit={save}>
-        <div className="row-between"><h2>Profile</h2><Link to={`/people/${user.id}`} className="small strong">View my profile</Link></div>
+        <h2>Profile</h2>
         <PhotoPicker />
         <label className="field">Name<input required value={f.display_name} onChange={(e) => setF({ ...f, display_name: e.target.value })} /></label>
         <label className="field">Neighborhood<input value={f.neighborhood} onChange={(e) => setF({ ...f, neighborhood: e.target.value })} /></label>
@@ -189,7 +122,7 @@ export default function MePage() {
         <label className="field">Trusted contact's email (for "Tell a friend where you'll be")
           <input type="email" value={trusted} onChange={(e) => setTrusted(e.target.value)} /></label>
         <button type="submit" className="btn btn-primary">Save changes</button>
-        {saved && <p className="small" role="status">{saved}</p>}
+        {saved && <p className="small" role="status">{saved}{saved === 'Saved.' && <> <Link to={`/people/${user.id}`}>See my profile</Link></>}</p>}
         <p className="small"><Link to="/guidelines">Community guidelines &amp; safety center</Link> · <Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link></p>
         <InstallApp variant="settings" />
         {isAdmin && <p><Link to="/admin" className="btn btn-sm">Admin: reports</Link></p>}

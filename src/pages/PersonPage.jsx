@@ -5,6 +5,8 @@ import { useAuth } from '../lib/auth.jsx';
 import EventCard from '../components/EventCard.jsx';
 import ReportButton from '../components/ReportButton.jsx';
 import Avatar from '../components/Avatar.jsx';
+import MyStuff from '../components/MyStuff.jsx';
+import { PROJECT_EMAIL } from '../lib/constants.js';
 import { HostRating, Stars } from '../components/Stars.jsx';
 
 const lower = (list) => (list || []).map((x) => x.toLowerCase());
@@ -92,7 +94,7 @@ export default function PersonPage() {
           </p>
           {(rating?.review_count > 0 || events.length > 0) && <HostRating rating={rating} />}
         </div>
-        {isMe && <div className="profile-actions"><Link to="/me" className="btn btn-sm">Edit profile</Link></div>}
+        {isMe && <div className="profile-actions"><Link to="/me" className="btn btn-sm">Edit profile &amp; settings</Link></div>}
       </div>
 
       <div className="profile-grid">
@@ -105,14 +107,19 @@ export default function PersonPage() {
                 {intro.map((row, i) => <li key={i}><span className="ico" aria-hidden="true">{row.ico}</span><span>{row.text}</span></li>)}
               </ul>
             )}
-            {!p.bio && intro.length === 0 && <p className="muted small">{isMe ? 'Add a bio and a few details on your Me page.' : 'No intro yet.'}</p>}
+            {!p.bio && intro.length === 0 && <p className="muted small">{isMe ? <>Add a bio and a few details with <Link to="/me">Edit profile</Link>.</> : 'No intro yet.'}</p>}
           </section>
           {(p.vibes || []).length > 0 && (
             <section className="panel"><h3>Vibes</h3><Pills items={p.vibes} kind="like" /></section>
           )}
+          {isMe && !p.verified && (
+            <section className="panel"><h3>Get verified</h3>
+              <p className="small" style={{ margin: 0 }}>Verified people get a badge so others know our team has confirmed who they are. During the beta, our team verifies people by hand. Email <a href={`mailto:${PROJECT_EMAIL}?subject=Verify%20me`}>{PROJECT_EMAIL}</a> to start.</p></section>
+          )}
         </aside>
 
         <div className="profile-col">
+          {isMe && <MyStuff />}
           {shared.length > 0 && (
             <section className="panel common"><strong>You both like:</strong> {shared.join(', ')}</section>
           )}
@@ -130,7 +137,7 @@ export default function PersonPage() {
           <section>
             <h2>Hosting soon</h2>
             <div className="stack">{events.map((e) => <EventCard key={e.id} event={e} />)}</div>
-            {events.length === 0 && <p className="muted">Nothing coming up.</p>}
+            {events.length === 0 && <p className="muted">{isMe ? <>Nothing yet. <Link to="/host">Host a gathering</Link></> : 'Nothing coming up.'}</p>}
           </section>
 
           {reviews.length > 0 && (
