@@ -172,8 +172,8 @@ legend { font-weight: 700; margin-bottom: 8px; font-size: .95rem; }
 @media (max-width: 900px) {
   .topnav { display: none; }
   .topbar { padding: 10px 16px; }
-  .tabbar { display: grid; grid-template-columns: repeat(5, 1fr); position: sticky; bottom: 0; z-index: 1000; background: var(--paper); border-top: 2px solid var(--ink); padding: 6px 6px max(10px, env(safe-area-inset-bottom, 0px)); }
-  .tab { display: grid; place-items: center; min-height: 52px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: .85rem; }
+  .tabbar { display: grid; grid-template-columns: repeat(6, 1fr); position: sticky; bottom: 0; z-index: 1000; background: var(--paper); border-top: 2px solid var(--ink); padding: 6px 6px max(10px, env(safe-area-inset-bottom, 0px)); }
+  .tab { display: grid; place-items: center; min-height: 52px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: .8rem; }
   .tab.active { background: var(--sun); }
   .explore, .event-body, .two-col, .me-grid { grid-template-columns: 1fr; }
   .explore-map { display: none; }
@@ -299,3 +299,50 @@ legend { font-weight: 700; margin-bottom: 8px; font-size: .95rem; }
 .member-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .member-list li { display: flex; gap: 12px; align-items: center; }
 .member-list .avatar, .member-list img { width: 40px; height: 40px; flex-shrink: 0; }
+
+/* Friends & messages */
+.topbar-end { display: flex; align-items: center; gap: 10px; }
+.inbox-btn { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 999px; border: 2px solid var(--ink); background: var(--card); color: var(--ink); }
+.inbox-btn.active { background: var(--sun); }
+.inbox-btn .badge { position: absolute; top: -6px; right: -6px; }
+.badge { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: #B3261E; color: #fff; font-size: .75rem; font-weight: 800; line-height: 1; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.friend-btn { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.messages { max-width: 1100px; margin: 0 auto; }
+.messages-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 24px; align-items: start; }
+.messages-side { display: flex; flex-direction: column; gap: 18px; }
+.inbox { display: flex; flex-direction: column; gap: 18px; }
+.inbox-head { font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.inbox-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.inbox-req { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1.5px solid var(--rule); border-radius: 16px; background: var(--card); }
+.convo { display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 16px; text-decoration: none; border: 1.5px solid transparent; }
+.convo:hover { background: var(--card); border-color: var(--rule); }
+.convo-on { background: var(--card); border-color: var(--ink); }
+.convo-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.convo-last { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-soft); }
+.convo-unread .convo-last { color: var(--ink); font-weight: 700; }
+.thread { display: flex; flex-direction: column; border: 2px solid var(--ink); border-radius: var(--radius); background: var(--card); height: min(72vh, 760px); }
+.thread-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1.5px solid var(--rule); }
+.thread-back { display: none; font-size: 1.4rem; text-decoration: none; padding: 4px 10px; }
+.thread-body { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+.thread-time { text-align: center; margin: 10px 0 4px; }
+.thread-empty { text-align: center; margin: auto; max-width: 320px; }
+.bubble { max-width: 78%; width: fit-content; margin: 0; padding: 9px 14px; border-radius: 18px 18px 18px 6px; background: var(--leaf); white-space: pre-wrap; overflow-wrap: anywhere; }
+.bubble-me { margin-left: auto; border-radius: 18px 18px 6px 18px; background: var(--ink); color: var(--paper); }
+.composer { display: flex; gap: 8px; align-items: flex-end; padding: 10px; border-top: 1.5px solid var(--rule); }
+.composer textarea { flex: 1; resize: none; min-height: 44px; max-height: 140px; padding: 10px 12px; border: 1.5px solid #B9AB90; border-radius: 14px; font: inherit; field-sizing: content; }
+.composer-off { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-top: 1.5px solid var(--rule); background: var(--watch); border-radius: 0 0 var(--radius) var(--radius); }
+.thread-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 6px 4px 0; color: var(--ink-soft); }
+.discover { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.discover-me { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.discover-filters { display: flex; flex-direction: column; gap: 6px; }
+.discover-card .chips { gap: 6px; }
+@media (max-width: 900px) {
+  .messages-grid { grid-template-columns: 1fr; }
+  .messages.has-thread .messages-side, .messages.has-thread .messages-title { display: none; }
+  .messages:not(.has-thread) .messages-main { display: none; }
+  .thread { height: calc(100dvh - 210px); min-height: 360px; }
+  .thread-back { display: inline-block; }
+}
+.field-row { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+#discover { scroll-margin-top: 96px; }

@@ -20,6 +20,8 @@ import NotFound from './pages/NotFound.jsx';
 import Terms from './pages/Terms.jsx';
 import Privacy from './pages/Privacy.jsx';
 import AdminPage from './pages/AdminPage.jsx';
+import DiscoverPage from './pages/DiscoverPage.jsx';
+import MessagesPage from './pages/MessagesPage.jsx';
 
 function SetupNeeded() {
   return (
@@ -46,6 +48,9 @@ export default function App() {
             <Route path="circles/:id" element={<CirclePage />} />
             <Route path="parents/:mode" element={<ParentsPage />} />
             <Route path="people/:id" element={<PersonPage />} />
+            <Route path="discover" element={<DiscoverPage />} />
+            <Route path="messages" element={<RequireAuth><MessagesPage /></RequireAuth>} />
+            <Route path="messages/:id" element={<RequireAuth><MessagesPage /></RequireAuth>} />
             <Route path="me" element={<RequireAuth><MePage /></RequireAuth>} />
             <Route path="signin" element={<SignIn />} />
             <Route path="reset-password" element={<ResetPassword />} />
