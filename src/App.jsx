@@ -17,6 +17,9 @@ import ResetPassword from './pages/ResetPassword.jsx';
 import Welcome from './pages/Welcome.jsx';
 import Guidelines from './pages/Guidelines.jsx';
 import NotFound from './pages/NotFound.jsx';
+import Terms from './pages/Terms.jsx';
+import Privacy from './pages/Privacy.jsx';
+import AdminPage from './pages/AdminPage.jsx';
 
 function SetupNeeded() {
   return (
@@ -38,6 +41,7 @@ export default function App() {
             <Route path="map" element={<MapPage />} />
             <Route path="events/:id" element={<EventPage />} />
             <Route path="host" element={<RequireAuth><HostPage /></RequireAuth>} />
+            <Route path="host/:id/edit" element={<RequireAuth><HostPage key="edit" /></RequireAuth>} />
             <Route path="circles" element={<CirclesPage />} />
             <Route path="circles/:id" element={<CirclePage />} />
             <Route path="parents/:mode" element={<ParentsPage />} />
@@ -47,6 +51,9 @@ export default function App() {
             <Route path="reset-password" element={<ResetPassword />} />
             <Route path="welcome" element={<Welcome />} />
             <Route path="guidelines" element={<Guidelines />} />
+            <Route path="terms" element={<Terms />} />
+            <Route path="privacy" element={<Privacy />} />
+            <Route path="admin" element={<RequireAuth><AdminPage /></RequireAuth>} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
