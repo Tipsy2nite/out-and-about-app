@@ -9,9 +9,10 @@ import EventCard from '../components/EventCard.jsx';
 import TagInput from '../components/TagInput.jsx';
 import Avatar from '../components/Avatar.jsx';
 import PhotoPicker from '../components/PhotoPicker.jsx';
+import DeleteAccount from '../components/DeleteAccount.jsx';
 
 export default function MePage() {
-  const { user, profile, refreshProfile, signOut } = useAuth();
+  const { user, profile, refreshProfile, signOut, isAdmin } = useAuth();
   const [f, setF] = useState(null);
   const [trusted, setTrusted] = useState('');
   const [mail, setMail] = useState({ email_plan_changes: true, email_reminders: true, email_new_rsvps: true });
@@ -188,9 +189,10 @@ export default function MePage() {
           <input type="email" value={trusted} onChange={(e) => setTrusted(e.target.value)} /></label>
         <button type="submit" className="btn btn-primary">Save changes</button>
         {saved && <p className="small" role="status">{saved}</p>}
-        <p className="small"><Link to="/guidelines">Community guidelines &amp; safety center</Link></p>
-        <p className="small">Want your account and data deleted? Email <a href={`mailto:${PROJECT_EMAIL}?subject=Delete%20my%20account`}>{PROJECT_EMAIL}</a>.</p>
+        <p className="small"><Link to="/guidelines">Community guidelines &amp; safety center</Link> · <Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link></p>
+        {isAdmin && <p><Link to="/admin" className="btn btn-sm">Admin: reports</Link></p>}
         <button type="button" className="btn btn-outline" onClick={signOut}>Sign out</button>
+        <DeleteAccount />
       </form>
     </div>
   );

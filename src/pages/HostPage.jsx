@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
 import { ACCESS, CATEGORIES, HOST_MIN_AGE, RAIN_PLANS, REQUIRE_VERIFIED_FOR_HOME_EVENTS, SIZES, TAGS } from '../lib/constants.js';
@@ -8,8 +8,11 @@ import { ChipGroup } from '../components/Chip.jsx';
 import { LocationPicker } from '../components/MapView.jsx';
 
 export default function HostPage() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const nav = useNavigate();
+  const { id: editId } = useParams();           // set when editing an existing gathering
+  const editing = Boolean(editId);
+  const [original, setOriginal] = useState(null); // the gathering as it was before editing
   const [params] = useSearchParams();
   const canHostAtHome = !REQUIRE_VERIFIED_FOR_HOME_EVENTS || Boolean(profile?.verified);
   const [oldEnough, setOldEnough] = useState(null); // null = checking
@@ -38,7 +41,36 @@ export default function HostPage() {
     access_notes: '',
   });
   const [pin, setPin] = useState(null);
+  const [loadState, setLoadState] = useState(editing ? 'loading' : 'ready'); // loading | ready | missing | notyours
   const [error, setError] = useState('');
+
+  // When editing, fill the form with the gathering's current details
+  useEffect(() => {
+    if (!editing || !user) return;
+    let live = true;
+    (async () => {
+      const { data: ev } = await supabase.from('events').select('*').eq('id', editId).maybeSingle();
+      if (!live) return;
+      if (!ev) { setLoadState('missing'); return; }
+      if (ev.host_id !== user.id) { setLoadState('notyours'); return; }
+      const { data: loc } = await supabase.from('event_locations').select('address').eq('event_id', editId).maybeSingle();
+      if (!live) return;
+      const d = new Date(ev.starts_at);
+      const pad = (n) => String(n).padStart(2, '0');
+      const local = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      setF({
+        title: ev.title, description: ev.description || '', category: ev.category, audience: ev.audience,
+        starts_at: local, area_label: ev.area_label, is_private_location: ev.is_private_location, address: loc?.address || '',
+        size: ev.size, open_invite: ev.open_invite, tags: ev.tags || [], rain_plan: ev.rain_plan, rain_plan_note: ev.rain_plan_note || '',
+        access_entry: ev.access_entry, access_shade: ev.access_shade, access_restrooms: ev.access_restrooms, access_noise: ev.access_noise,
+        access_notes: ev.access_notes || '',
+      });
+      setPin([ev.lat, ev.lng]);
+      setOriginal({ ...ev, starts_local: local, address: loc?.address || '' });
+      setLoadState('ready');
+    })();
+    return () => { live = false; };
+  }, [editing, editId, user]);
   const [saving, setSaving] = useState(false);
   const set = (k) => (v) => setF((prev) => ({ ...prev, [k]: v }));
   const onInput = (k) => (e) => set(k)(e.target.type === 'checkbox' ? e.target.checked : e.target.value);
@@ -48,9 +80,25 @@ export default function HostPage() {
     setError('');
     if (!pin) return setError('Tap the map to drop a pin where the gathering is.');
     if (f.is_private_location && !f.address.trim()) return setError('Add the exact address. Only guests who RSVP will see it.');
-    if (new Date(f.starts_at) < new Date()) return setError('Pick a date and time in the future.');
+    const timeChanged = !editing || f.starts_at !== original?.starts_local;
+    if (timeChanged && new Date(f.starts_at) < new Date()) return setError('Pick a date and time in the future.');
     setSaving(true);
     const { address, starts_at, ...rest } = f;
+
+    if (editing) {
+      const changes = { ...rest, lat: pin[0], lng: pin[1], description: rest.description || null, rain_plan_note: rest.rain_plan_note || null, access_notes: rest.access_notes || null };
+      if (timeChanged) changes.starts_at = new Date(starts_at).toISOString();
+      const { error: err } = await supabase.from('events').update(changes).eq('id', editId);
+      if (err) { setSaving(false); return setError(`Couldn't save: ${err.message}`); }
+      if (f.is_private_location && address.trim() !== original.address) {
+        const { error: locErr } = await supabase.from('event_locations').upsert({ event_id: editId, address: address.trim() }, { onConflict: 'event_id' });
+        if (locErr) { setSaving(false); return setError(`Saved, but the address didn't update: ${locErr.message}`); }
+      }
+      if (!f.is_private_location && original.address) await supabase.from('event_locations').delete().eq('event_id', editId);
+      nav(`/events/${editId}`, { state: { saved: true } });
+      return;
+    }
+
     const { data, error: err } = await supabase.from('events')
       .insert({ ...rest, starts_at: new Date(starts_at).toISOString(), lat: pin[0], lng: pin[1] })
       .select('id').single();
@@ -62,7 +110,9 @@ export default function HostPage() {
     nav(`/events/${data.id}`);
   };
 
-  if (oldEnough === null) return <p className="pad muted">Loading…</p>;
+  if (oldEnough === null || loadState === 'loading') return <p className="pad muted">Loading…</p>;
+  if (loadState === 'missing') return <div className="pad narrow"><h1 className="page-title">This gathering isn't here anymore</h1><p><Link to="/">Back to Explore</Link></p></div>;
+  if (loadState === 'notyours') return <div className="pad narrow"><h1 className="page-title">Only the host can edit this</h1><p><Link to={`/events/${editId}`}>Back to the gathering</Link></p></div>;
   if (!oldEnough) {
     return (
       <div className="pad narrow">
@@ -75,8 +125,10 @@ export default function HostPage() {
 
   return (
     <form className="pad form narrow" onSubmit={submit}>
-      <h1 className="page-title">Host a gathering</h1>
-      <p className="muted">Big party or three people and a chessboard. Both count.</p>
+      <h1 className="page-title">{editing ? 'Edit your gathering' : 'Host a gathering'}</h1>
+      {editing
+        ? <p className="muted">If you change the time, place, or address, everyone who RSVP'd gets an email. To move, postpone, or cancel, use the buttons on the gathering's page.</p>
+        : <p className="muted">Big party or three people and a chessboard. Both count.</p>}
 
       <label className="field">What's happening?
         <input required minLength={3} maxLength={90} value={f.title} onChange={onInput('title')} placeholder="Sunday kite flying" />
@@ -140,7 +192,7 @@ export default function HostPage() {
 
       <p className="small">By posting, you agree to the <Link to="/guidelines">Host Agreement and Community Guidelines</Link>.</p>
       {error && <p className="error" role="alert">{error}</p>}
-      <button type="submit" className="btn btn-primary btn-wide" disabled={saving}>{saving ? 'Posting…' : 'Put it out there'}</button>
+      <button type="submit" className="btn btn-primary btn-wide" disabled={saving}>{saving ? (editing ? 'Saving…' : 'Posting…') : (editing ? 'Save changes' : 'Put it out there')}</button>
     </form>
   );
 }

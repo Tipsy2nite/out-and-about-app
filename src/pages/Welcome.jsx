@@ -27,7 +27,7 @@ export default function Welcome() {
     const age = ageFrom(f.birthdate);
     if (age === null) return setError('Enter your date of birth.');
     if (age < MIN_AGE) return setError(`Out & About is for adults ${MIN_AGE} and older.`);
-    if (!f.agree) return setError('Please agree to the Community Guidelines to continue.');
+    if (!f.agree) return setError('Please agree to the Terms, Privacy Policy, and Community Guidelines to continue.');
     setSaving(true);
     const { error: e1 } = await supabase.from('profiles').insert({
       id: user.id, display_name: f.display_name.trim(), neighborhood: f.neighborhood.trim() || null, vibes: f.vibes, hide_age: f.hide_age,
@@ -60,7 +60,7 @@ export default function Welcome() {
       <fieldset><legend>What's your vibe? Pick as many as you like.</legend>
         <ChipGroup multi options={VIBES} value={f.vibes} onChange={(v) => setF({ ...f, vibes: v })} /></fieldset>
       <label className="check"><input type="checkbox" checked={f.agree} onChange={(e) => setF({ ...f, agree: e.target.checked })} />
-        <span>I'm {MIN_AGE} or older and agree to the <Link to="/guidelines" target="_blank">Community Guidelines</Link>.</span></label>
+        <span>I'm {MIN_AGE} or older and agree to the <Link to="/terms" target="_blank">Terms of Service</Link>, <Link to="/privacy" target="_blank">Privacy Policy</Link>, and <Link to="/guidelines" target="_blank">Community Guidelines</Link>.</span></label>
       {error && <p className="error" role="alert">{error}</p>}
       <button type="submit" className="btn btn-primary btn-wide" disabled={saving}>Let's go outside</button>
     </form>

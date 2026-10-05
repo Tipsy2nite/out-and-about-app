@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
 import { HOST_MIN_AGE, MIN_AGE, ageFrom } from '../lib/constants.js';
@@ -147,7 +147,7 @@ export default function SignIn() {
 
             {mode === 'signin' && <button type="button" className="linkish" onClick={() => switchMode('forgot')}>Forgot password?</button>}
             {mode === 'forgot' && <button type="button" className="linkish" onClick={() => switchMode('signin')}>Back to sign in</button>}
-            {mode === 'signup' && <p className="small muted">By creating an account you confirm the date of birth above is true.</p>}
+            {mode === 'signup' && <p className="small muted">By creating an account you agree to our <Link to="/terms" target="_blank">Terms of Service</Link> and <Link to="/privacy" target="_blank">Privacy Policy</Link>, and confirm the date of birth above is true.</p>}
           </form>
         </>
       )}

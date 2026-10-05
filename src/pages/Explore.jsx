@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import useEvents from './useEvents.js';
 import EventCard from '../components/EventCard.jsx';
 import MapView from '../components/MapView.jsx';
@@ -10,6 +10,7 @@ import useHostRatings from '../lib/useHostRatings.js';
 
 export default function Explore() {
   const { user } = useAuth();
+  const loc = useLocation();
   const { events, goingIds, error } = useEvents();
   const [cat, setCat] = useState('All');
   const [query, setQuery] = useState('');
@@ -35,6 +36,7 @@ export default function Explore() {
   return (
     <div className="explore">
       <div className="explore-list">
+        {loc.state?.deleted && <p className="panel panel-safe notice" role="status">Your account was deleted. Thanks for getting outside with us.</p>}
         {!user && (
           <section className="hero">
             <h1>Log off. Go outside. Bring friends.</h1>

@@ -138,6 +138,7 @@ export default function EventPage() {
             <section className="panel">
               <h3>You're hosting</h3>
               <p className="small">Changing plans updates this page and emails every guest.</p>
+              <p><Link to={`/host/${ev.id}/edit`} className="btn btn-sm">Edit details</Link></p>
               <div className="chips">
                 <button type="button" className="chip" onClick={() => setStatus('moved')}>Moved to backup spot</button>
                 <button type="button" className="chip" onClick={() => setStatus('postponed')}>Postpone</button>
