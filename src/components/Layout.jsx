@@ -50,7 +50,11 @@ export default function Layout() {
         <NavLink to={user ? '/me' : '/signin'} className="tab">Me</NavLink>
       </nav>
       <footer className="footer">
-        <Link to="/guidelines">Community guidelines &amp; safety</Link>
+        <span className="footer-links">
+          <Link to="/guidelines">Community guidelines &amp; safety</Link>
+          <Link to="/terms">Terms</Link>
+          <Link to="/privacy">Privacy</Link>
+        </span>
         <span>If you're in danger, call 911.</span>
       </footer>
     </div>
