@@ -274,3 +274,14 @@ legend { font-weight: 700; margin-bottom: 8px; font-size: .95rem; }
 .report-details { margin: 0; padding: 10px 14px; border-left: 4px solid var(--sun); background: var(--paper); border-radius: 0 12px 12px 0; white-space: pre-wrap; }
 .admin-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .notice { margin-bottom: 16px; }
+
+/* Install the app */
+.install-card { position: relative; display: flex; gap: 14px; align-items: flex-start; padding: 14px 44px 14px 14px; margin-bottom: 16px; border: 2px solid var(--ink); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); }
+.install-settings { padding-right: 14px; box-shadow: none; border-width: 1.5px; border-color: var(--rule); margin: 0; }
+.install-icon { width: 56px; height: 56px; border-radius: 14px; border: 1.5px solid var(--rule); flex-shrink: 0; }
+.install-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.install-steps { margin: 2px 0 0; padding-left: 18px; }
+.install-steps li { margin-bottom: 2px; }
+.install-x { position: absolute; top: 6px; right: 6px; width: 36px; height: 36px; border: none; background: none; font-size: 1.4rem; cursor: pointer; color: var(--ink); border-radius: 999px; }
+.install-x:hover { background: rgba(0,0,0,.06); }
+@media (display-mode: standalone) { .topbar { padding-top: max(12px, env(safe-area-inset-top, 0px)); } }
