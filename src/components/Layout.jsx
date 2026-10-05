@@ -1,12 +1,14 @@
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
 import Avatar from './Avatar.jsx';
 import { useAuth } from '../lib/auth.jsx';
+import useInboxCounts from '../lib/useInboxCounts.js';
 
 const NAV = [
   ['/', 'Explore'],
   ['/map', 'Map'],
   ['/parents/moms', 'Moms'],
   ['/parents/dads', 'Dads'],
+  ['/discover', 'Discover'],
   ['/circles', 'Circles'],
   ['/host', 'Host'],
 ];
@@ -29,6 +31,9 @@ export default function Layout() {
   // "Me" opens your own profile; the edit screen (/me) counts as "Me" too
   const myProfile = user ? `/people/${user.id}` : '/signin';
   const onMe = Boolean(user) && (pathname === '/me' || pathname === myProfile);
+  const { messages, requests } = useInboxCounts(user?.id, Boolean(profile));
+  const inbox = messages + requests;
+  const inboxLabel = `Messages${messages ? `, ${messages} unread` : ''}${requests ? `, ${requests} friend request${requests > 1 ? 's' : ''}` : ''}`;
   return (
     <div className="shell">
       <a className="skip" href="#main">Skip to content</a>
@@ -40,6 +45,14 @@ export default function Layout() {
           ))}
         </nav>
         <div className="topbar-end">
+          {user && profile && (
+            <NavLink to="/messages" className="inbox-btn" aria-label={inboxLabel} title="Messages">
+              <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round">
+                <path d="M4 5h16v11H9l-5 4z" />
+              </svg>
+              {inbox > 0 && <span className="badge">{inbox > 9 ? '9+' : inbox}</span>}
+            </NavLink>
+          )}
           {user
             ? <NavLink to={myProfile} className={`avatar-btn-link${onMe ? ' active' : ''}`} aria-label="My profile"><Avatar name={profile?.display_name || 'You'} url={profile?.avatar_url} className="avatar-btn" /></NavLink>
             : <Link to="/signin" className="btn btn-primary btn-sm">Sign in</Link>}
@@ -49,6 +62,7 @@ export default function Layout() {
       <nav className="tabbar" aria-label="Main">
         <NavLink to="/" end className="tab">Explore</NavLink>
         <NavLink to="/map" className="tab">Map</NavLink>
+        <NavLink to="/discover" className="tab">Discover</NavLink>
         <NavLink to="/circles" className="tab">Circles</NavLink>
         <NavLink to="/host" className="tab">Host</NavLink>
         <NavLink to={myProfile} className={() => `tab${onMe ? ' active' : ''}`}>Me</NavLink>
