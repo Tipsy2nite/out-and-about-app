@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
 import { timeAgo } from '../lib/format.js';
 import Avatar from '../components/Avatar.jsx';
+import NewMembers from '../components/NewMembers.jsx';
 
 const URGENT = ['Feels unsafe', 'Harassment or hate'];
 const TYPE_LABEL = { event: 'Gathering', user: 'Person', post: 'Circle post', circle: 'Circle', review: 'Review' };
@@ -95,8 +96,11 @@ export default function AdminPage() {
 
   return (
     <div className="pad admin">
-      <div className="row-between"><h1 className="page-title">Admin: reports</h1>
+      <div className="row-between"><h1 className="page-title">Admin</h1>
         <button type="button" className="btn btn-sm" onClick={load}>Refresh</button></div>
+      <NewMembers />
+
+      <h2 style={{ marginTop: 24 }}>Reports</h2>
       <p className="small muted">Urgent safety reports should be handled within an hour. You get an email for every new report.</p>
 
       <div className="chips" role="tablist" aria-label="Filter reports" style={{ margin: '12px 0' }}>
