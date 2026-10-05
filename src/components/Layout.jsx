@@ -1,4 +1,4 @@
-import { NavLink, Link, Outlet } from 'react-router-dom';
+import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
 import Avatar from './Avatar.jsx';
 import { useAuth } from '../lib/auth.jsx';
 
@@ -25,6 +25,10 @@ function Sun() {
 
 export default function Layout() {
   const { user, profile } = useAuth();
+  const { pathname } = useLocation();
+  // "Me" opens your own profile; the edit screen (/me) counts as "Me" too
+  const myProfile = user ? `/people/${user.id}` : '/signin';
+  const onMe = Boolean(user) && (pathname === '/me' || pathname === myProfile);
   return (
     <div className="shell">
       <a className="skip" href="#main">Skip to content</a>
@@ -37,7 +41,7 @@ export default function Layout() {
         </nav>
         <div className="topbar-end">
           {user
-            ? <NavLink to="/me" className="avatar-btn-link" aria-label="My stuff"><Avatar name={profile?.display_name || 'You'} url={profile?.avatar_url} className="avatar-btn" /></NavLink>
+            ? <NavLink to={myProfile} className={`avatar-btn-link${onMe ? ' active' : ''}`} aria-label="My profile"><Avatar name={profile?.display_name || 'You'} url={profile?.avatar_url} className="avatar-btn" /></NavLink>
             : <Link to="/signin" className="btn btn-primary btn-sm">Sign in</Link>}
         </div>
       </header>
@@ -47,7 +51,7 @@ export default function Layout() {
         <NavLink to="/map" className="tab">Map</NavLink>
         <NavLink to="/circles" className="tab">Circles</NavLink>
         <NavLink to="/host" className="tab">Host</NavLink>
-        <NavLink to={user ? '/me' : '/signin'} className="tab">Me</NavLink>
+        <NavLink to={myProfile} className={() => `tab${onMe ? ' active' : ''}`}>Me</NavLink>
       </nav>
       <footer className="footer">
         <span className="footer-links">
