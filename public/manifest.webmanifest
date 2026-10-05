@@ -1,0 +1,24 @@
+{
+  "name": "Out & About",
+  "short_name": "Out & About",
+  "description": "Find and host outdoor gatherings around Austin: park picnics, porch concerts, open-invite parties, and niche meetups.",
+  "id": "/",
+  "start_url": "/?source=app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF5E9",
+  "theme_color": "#FBF5E9",
+  "lang": "en-US",
+  "categories": ["social", "lifestyle", "events"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Explore", "short_name": "Explore", "url": "/?source=shortcut#/", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Map", "short_name": "Map", "url": "/?source=shortcut#/map", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Host a gathering", "short_name": "Host", "url": "/?source=shortcut#/host", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
