@@ -287,4 +287,5 @@ grant execute on function public.event_stats(uuid), public.event_guests(uuid),
 -- supabase/2026-10-04_host_reviews.sql, then
 -- supabase/2026-10-04_richer_profiles.sql, then
 -- supabase/2026-10-04_profile_photos.sql, then
--- supabase/2026-10-04_email_notifications.sql, after this file.
+-- supabase/2026-10-04_email_notifications.sql, then
+-- supabase/2026-10-05_admin_and_account_deletion.sql, after this file.
