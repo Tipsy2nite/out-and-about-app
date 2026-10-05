@@ -7,6 +7,7 @@ import Chip from '../components/Chip.jsx';
 import { AUDIENCES, CATEGORIES } from '../lib/constants.js';
 import { useAuth } from '../lib/auth.jsx';
 import useHostRatings from '../lib/useHostRatings.js';
+import InstallApp from '../components/InstallApp.jsx';
 
 export default function Explore() {
   const { user } = useAuth();
@@ -44,6 +45,7 @@ export default function Explore() {
             <Link to="/signin" state={{ mode: 'signup' }} className="btn btn-primary">Join Out &amp; About</Link>
           </section>
         )}
+        <InstallApp />
         <h2 className="page-title">What's happening outside</h2>
         <p className="small strong for-label">Who's it for?</p>
         <div className="for-tiles" role="group" aria-label="Who's it for?">
