@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
-import { COVER_COLORS, DISLIKE_SUGGESTIONS, LIKE_SUGGESTIONS, SPOT_SUGGESTIONS, STAGES, VIBES } from '../lib/constants.js';
+import { AREA_LEVELS, COVER_COLORS, DISLIKE_SUGGESTIONS, LIKE_SUGGESTIONS, LOOKING_FOR, SPOT_SUGGESTIONS, STAGES, VIBES, areaLabel } from '../lib/constants.js';
 import { ChipGroup } from '../components/Chip.jsx';
 import TagInput from '../components/TagInput.jsx';
 import PhotoPicker from '../components/PhotoPicker.jsx';
@@ -13,7 +13,8 @@ export default function MePage() {
   const { user, profile, refreshProfile, signOut, isAdmin } = useAuth();
   const [f, setF] = useState(null);
   const [trusted, setTrusted] = useState('');
-  const [mail, setMail] = useState({ email_plan_changes: true, email_reminders: true, email_new_rsvps: true });
+  const [mail, setMail] = useState({ email_plan_changes: true, email_reminders: true, email_new_rsvps: true, email_friend_requests: true, email_messages: true });
+  const { hash } = useLocation();
   const [saved, setSaved] = useState('');
 
   useEffect(() => {
@@ -27,17 +28,24 @@ export default function MePage() {
       languages: profile.languages || [], likes: profile.likes || [], dislikes: profile.dislikes || [],
       favorite_spots: profile.favorite_spots || [], perfect_weekend: profile.perfect_weekend || '',
       ask_me_about: profile.ask_me_about || '', cover_color: profile.cover_color || '',
+      city: profile.city || '', state: profile.state || '', area_level: profile.area_level || 'neighborhood',
+      discoverable: Boolean(profile.discoverable), looking_for: profile.looking_for || [],
     });
   }, [profile]);
 
   useEffect(() => {
     (async () => {
       const { data: p } = await supabase.from('profile_private')
-        .select('trusted_contact_email, email_plan_changes, email_reminders, email_new_rsvps').eq('user_id', user.id).maybeSingle();
+        .select('trusted_contact_email, email_plan_changes, email_reminders, email_new_rsvps, email_friend_requests, email_messages').eq('user_id', user.id).maybeSingle();
       setTrusted(p?.trusted_contact_email || '');
-      if (p) setMail({ email_plan_changes: p.email_plan_changes !== false, email_reminders: p.email_reminders !== false, email_new_rsvps: p.email_new_rsvps !== false });
+      if (p) setMail({ email_plan_changes: p.email_plan_changes !== false, email_reminders: p.email_reminders !== false, email_new_rsvps: p.email_new_rsvps !== false, email_friend_requests: p.email_friend_requests !== false, email_messages: p.email_messages !== false });
     })();
   }, [user]);
+
+  // /me#discover jumps to the Discover settings
+  useEffect(() => {
+    if (f && hash === '#discover') document.getElementById('discover')?.scrollIntoView({ block: 'start' });
+  }, [Boolean(f), hash]);
 
   if (!f) return null;
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
@@ -51,6 +59,7 @@ export default function MePage() {
       austin_since: f.austin_since ? Number(f.austin_since) : null,
       perfect_weekend: f.perfect_weekend.trim() || null, ask_me_about: f.ask_me_about.trim() || null,
       cover_color: f.cover_color || null,
+      city: f.city.trim() || null, state: f.state.trim() || null,
     }).eq('id', user.id);
     const { error: e2 } = await supabase.from('profile_private').update({ trusted_contact_email: trusted || null, ...mail }).eq('user_id', user.id);
     setSaved(error || e2 ? `Didn't save: ${(error || e2).message}` : 'Saved.');
@@ -67,7 +76,15 @@ export default function MePage() {
         <h2>Profile</h2>
         <PhotoPicker />
         <label className="field">Name<input required value={f.display_name} onChange={(e) => setF({ ...f, display_name: e.target.value })} /></label>
-        <label className="field">Neighborhood<input value={f.neighborhood} onChange={(e) => setF({ ...f, neighborhood: e.target.value })} /></label>
+        <label className="field">Neighborhood<input maxLength={60} value={f.neighborhood} onChange={(e) => setF({ ...f, neighborhood: e.target.value })} placeholder="Bouldin Creek" /></label>
+        <div className="field-row">
+          <label className="field">City<input maxLength={60} value={f.city} onChange={set('city')} placeholder="Austin" /></label>
+          <label className="field">State<input maxLength={30} value={f.state} onChange={set('state')} placeholder="TX" /></label>
+        </div>
+        <fieldset><legend>Show my location as</legend>
+          <ChipGroup options={AREA_LEVELS} value={f.area_level} onChange={(v) => setF({ ...f, area_level: v })} />
+          <span className="small muted">Others see: <strong>{areaLabel(f) || 'nothing yet'}</strong>. Your exact location is never shown.</span>
+        </fieldset>
         <label className="field">About you<textarea rows={3} maxLength={500} value={f.bio} onChange={(e) => setF({ ...f, bio: e.target.value })} /></label>
         <fieldset><legend>My vibes</legend><ChipGroup multi options={VIBES} value={f.vibes} onChange={(v) => setF({ ...f, vibes: v })} /></fieldset>
 
@@ -106,6 +123,14 @@ export default function MePage() {
               Show me in "{f.parent_role === 'mom' ? 'Moms' : 'Dads'} near you"</label>
           </>}
         </fieldset>
+        <h2 id="discover">Discover &amp; friends</h2>
+        <label className="check"><input type="checkbox" checked={f.discoverable} onChange={(e) => setF({ ...f, discoverable: e.target.checked, looking_for: e.target.checked && !f.looking_for.length ? ['New friends'] : f.looking_for })} />
+          Show me in Discover so people nearby can find me</label>
+        {f.discoverable && <>
+          <span className="small strong">I'm looking for</span>
+          <ChipGroup multi options={LOOKING_FOR} value={f.looking_for} onChange={(v) => setF({ ...f, looking_for: v })} />
+        </>}
+        <p className="small muted" style={{ margin: 0 }}>Only friends can message you. Someone becomes a friend when you accept their request, or they accept yours.</p>
         <h2>Safety &amp; privacy</h2>
         <label className="check"><input type="checkbox" checked={f.hide_from_guest_lists} onChange={(e) => setF({ ...f, hide_from_guest_lists: e.target.checked })} />
           Hide me from guest lists</label>
@@ -118,6 +143,10 @@ export default function MePage() {
             The day before a gathering I'm going to or hosting</label>
           <label className="check"><input type="checkbox" checked={mail.email_new_rsvps} onChange={(e) => setMail({ ...mail, email_new_rsvps: e.target.checked })} />
             Someone RSVPs to a gathering I'm hosting</label>
+          <label className="check"><input type="checkbox" checked={mail.email_friend_requests} onChange={(e) => setMail({ ...mail, email_friend_requests: e.target.checked })} />
+            Someone sends or accepts a friend request</label>
+          <label className="check"><input type="checkbox" checked={mail.email_messages} onChange={(e) => setMail({ ...mail, email_messages: e.target.checked })} />
+            A friend sends me a message (one email until I read it)</label>
         </fieldset>
         <label className="field">Trusted contact's email (for "Tell a friend where you'll be")
           <input type="email" value={trusted} onChange={(e) => setTrusted(e.target.value)} /></label>

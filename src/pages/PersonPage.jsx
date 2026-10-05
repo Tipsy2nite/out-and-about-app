@@ -6,7 +6,8 @@ import EventCard from '../components/EventCard.jsx';
 import ReportButton from '../components/ReportButton.jsx';
 import Avatar from '../components/Avatar.jsx';
 import MyStuff from '../components/MyStuff.jsx';
-import { PROJECT_EMAIL } from '../lib/constants.js';
+import FriendButton from '../components/FriendButton.jsx';
+import { PROJECT_EMAIL, areaLabel } from '../lib/constants.js';
 import { HostRating, Stars } from '../components/Stars.jsx';
 
 const lower = (list) => (list || []).map((x) => x.toLowerCase());
@@ -69,9 +70,11 @@ export default function PersonPage() {
     ...(p.vibes || []).filter((x) => (me.vibes || []).includes(x)),
   ].slice(0, 6);
 
+  // Location at the level this person chose (you always see your own neighborhood)
+  const area = isMe ? [p.neighborhood, p.city].filter(Boolean).join(', ') : areaLabel(p);
   const intro = [
     p.pronouns && { ico: '🙂', text: p.pronouns },
-    p.neighborhood && { ico: '🏡', text: <>Lives in <strong>{p.neighborhood}</strong></> },
+    area && { ico: '🏡', text: <>Lives in <strong>{area}</strong></> },
     p.hometown && { ico: '📍', text: <>From <strong>{p.hometown}</strong></> },
     p.austin_since && { ico: '🌵', text: <>In Austin since <strong>{p.austin_since}</strong></> },
     p.work && { ico: '💼', text: p.work },
@@ -90,11 +93,12 @@ export default function PersonPage() {
         <div className="profile-name">
           <h1>{p.display_name}</h1>
           <p className="small" style={{ margin: 0 }}>
-            {p.verified ? 'Verified' : 'Not verified yet'}{p.neighborhood ? ` · ${p.neighborhood}` : ''}
+            {p.verified ? 'Verified' : 'Not verified yet'}{area ? ` · ${area}` : ''}
           </p>
           {(rating?.review_count > 0 || events.length > 0) && <HostRating rating={rating} />}
         </div>
         {isMe && <div className="profile-actions"><Link to="/me" className="btn btn-sm">Edit profile &amp; settings</Link></div>}
+        {!isMe && !blocked && <div className="profile-actions"><FriendButton personId={id} name={p.display_name} showUnfriend /></div>}
       </div>
 
       <div className="profile-grid">

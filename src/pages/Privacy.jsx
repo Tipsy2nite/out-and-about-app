@@ -18,14 +18,17 @@ export default function Privacy() {
       </ul>
       <h3>What you add to your profile (all optional except your name)</h3>
       <ul>
-        <li>Name or nickname, neighborhood, bio, vibes, pronouns, hometown, work, the year you moved to Austin, languages, likes, "not my thing," favorite spots, prompts like "Ask me about," and a cover color.</li>
+        <li>Name or nickname, neighborhood, city, state, bio, vibes, pronouns, hometown, work, the year you moved to Austin, languages, likes, "not my thing," favorite spots, prompts like "Ask me about," and a cover color.</li>
         <li><strong>Profile photo.</strong> Before upload, the app shrinks your photo and removes hidden data inside it, including the GPS location many phones save.</li>
         <li><strong>Parent hub details,</strong> if you choose: whether you're a mom or dad and your kids' age ranges. We never ask for children's names or photos.</li>
+        <li><strong>Location level.</strong> You choose whether others see your neighborhood, only your city, or only your state. We never ask for or show your exact address.</li>
+        <li><strong>Discover,</strong> if you turn it on: what you're looking for (new friends, a friend group, and so on). You're hidden from Discover unless you choose to show up.</li>
         <li><strong>A trusted contact's email,</strong> if you add one. It's only used to fill in an email on your own device when you tap "Tell a friend where you'll be." We never email that person.</li>
       </ul>
       <h3>What you do in the app</h3>
       <ul>
         <li><strong>Gatherings you host:</strong> title, description, date and time, general area and map pin, and details like rain plan and accessibility notes. For home gatherings, the exact address is stored separately.</li>
+        <li><strong>Friends and messages:</strong> friend requests you send and accept, and private messages between you and your friends. We store messages so they can be delivered. Our team doesn't read them in the app.</li>
         <li><strong>RSVPs, circles you join, circle posts, waves, host reviews, reports, and people you block.</strong></li>
         <li><strong>Email settings:</strong> which emails you want from us.</li>
       </ul>
@@ -37,7 +40,8 @@ export default function Privacy() {
         <li><strong>Signed-in members:</strong> profiles (including your photo and age unless hidden), circle membership, and host reviews. A review posted "without my name" doesn't show who wrote it.</li>
         <li><strong>Only the host and people who RSVP'd:</strong> a home gathering's exact address and the guest list. You can hide yourself from guest lists in your settings.</li>
         <li><strong>Only circle members:</strong> posts on that circle's board.</li>
-        <li><strong>Only you:</strong> your email, birthday, trusted contact, email settings, the people you block, and the reports you file.</li>
+        <li><strong>Only you and the friend you're talking to:</strong> your private messages. Only friends can message each other, and blocking someone ends the friendship.</li>
+        <li><strong>Only you:</strong> your friend list and requests, your email, birthday, trusted contact, email settings, the people you block, and the reports you file.</li>
         <li><strong>Our team:</strong> reports, and the information needed to review them and keep people safe.</li>
       </ul>
 
