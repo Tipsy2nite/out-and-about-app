@@ -285,3 +285,11 @@ legend { font-weight: 700; margin-bottom: 8px; font-size: .95rem; }
 .install-x { position: absolute; top: 6px; right: 6px; width: 36px; height: 36px; border: none; background: none; font-size: 1.4rem; cursor: pointer; color: var(--ink); border-radius: 999px; }
 .install-x:hover { background: rgba(0,0,0,.06); }
 @media (display-mode: standalone) { .topbar { padding-top: max(12px, env(safe-area-inset-top, 0px)); } }
+
+/* Private sections on your own profile */
+.my-stuff { display: flex; flex-direction: column; gap: 16px; padding: 16px; border: 2px dashed var(--rule); border-radius: var(--radius); }
+.my-stuff h2 { margin-top: 0; }
+.only-you { margin: 0; font-weight: 700; color: var(--ink-soft); }
+.only-you::before { content: "🔒 "; }
+.profile-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.edit-head { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
