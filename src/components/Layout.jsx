@@ -2,6 +2,7 @@ import { NavLink, Link, Outlet, useLocation } from 'react-router-dom';
 import Avatar from './Avatar.jsx';
 import { useAuth } from '../lib/auth.jsx';
 import useInboxCounts from '../lib/useInboxCounts.js';
+import ThemeToggle from './ThemeToggle.jsx';
 
 const NAV = [
   ['/', 'Explore'],
@@ -45,6 +46,7 @@ export default function Layout() {
           ))}
         </nav>
         <div className="topbar-end">
+          <ThemeToggle />
           {user && profile && (
             <NavLink to="/messages" className="inbox-btn" aria-label={inboxLabel} title="Messages">
               <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round">
