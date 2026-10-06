@@ -8,6 +8,7 @@ import TagInput from '../components/TagInput.jsx';
 import PhotoPicker from '../components/PhotoPicker.jsx';
 import DeleteAccount from '../components/DeleteAccount.jsx';
 import InstallApp from '../components/InstallApp.jsx';
+import { ThemePicker } from '../components/ThemeToggle.jsx';
 
 export default function MePage() {
   const { user, profile, refreshProfile, signOut, isAdmin } = useAuth();
@@ -153,6 +154,7 @@ export default function MePage() {
         <button type="submit" className="btn btn-primary">Save changes</button>
         {saved && <p className="small" role="status">{saved}{saved === 'Saved.' && <> <Link to={`/people/${user.id}`}>See my profile</Link></>}</p>}
         <p className="small"><Link to="/guidelines">Community guidelines &amp; safety center</Link> · <Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link></p>
+        <ThemePicker />
         <InstallApp variant="settings" />
         {isAdmin && <p><Link to="/admin" className="btn btn-sm">Admin: reports</Link></p>}
         <button type="button" className="btn btn-outline" onClick={signOut}>Sign out</button>
