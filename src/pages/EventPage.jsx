@@ -88,7 +88,9 @@ export default function EventPage() {
     nav('/');
   };
 
-  const where = address || ev.area_label;
+  const street = address || ev.address; // private address (RSVP'd only) or a public spot's address
+  const where = street ? (ev.is_private_location ? street : `${ev.area_label}, ${street}`) : ev.area_label;
+  const directions = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(street || `${ev.lat},${ev.lng}`)}`;
   const shareBody = encodeURIComponent(`I'm going to "${ev.title}" on ${d.long} at ${d.time}, at ${where}. Hosted by ${ev.host?.display_name || 'an Out & About host'}. Link: ${window.location.href}`);
   const shareHref = `mailto:${trusted}?subject=${encodeURIComponent('Where I\'ll be: ' + ev.title)}&body=${shareBody}`;
 
@@ -109,7 +111,11 @@ export default function EventPage() {
           <div>
             {ev.is_private_location && !address
               ? <><p className="big">{ev.area_label}, general area</p><p className="muted">The exact address unlocks when you RSVP.</p></>
-              : <><p className="big">{where}</p><p className="muted">{ev.is_private_location ? 'Private address. Please keep it to yourself.' : 'Public spot'}</p></>}
+              : <>
+                  <p className="big">{ev.is_private_location ? street : ev.area_label}</p>
+                  {!ev.is_private_location && ev.address && ev.address !== ev.area_label && <p className="addr-line">{ev.address}</p>}
+                  <p className="muted">{ev.is_private_location ? 'Private address. Please keep it to yourself.' : 'Public spot'} · <a href={directions} target="_blank" rel="noopener noreferrer">Get directions</a></p>
+                </>}
           </div>
 
           {ev.host && (
