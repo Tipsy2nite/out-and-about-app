@@ -1,4 +1,5 @@
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { Link } from 'react-router-dom';
 import { TINTS, AUSTIN } from '../lib/constants.js';
@@ -47,7 +48,16 @@ function ClickToPlace({ onPick }) {
   return null;
 }
 
-export function LocationPicker({ value, onPick }) {
+// Glides the map to a spot when an address is chosen (focus = { pos, key })
+function FlyTo({ focus }) {
+  const map = useMap();
+  useEffect(() => {
+    if (focus?.pos) map.flyTo(focus.pos, Math.max(map.getZoom(), 16), { duration: 0.8 });
+  }, [focus?.key]); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
+}
+
+export function LocationPicker({ value, onPick, focus }) {
   const icon = L.divIcon({ className: '', iconSize: [36, 36], iconAnchor: [18, 18], html: '<div class="pin pin-pick" style="width:36px;height:36px"></div>' });
   return (
     <div className="map-wrap" style={{ height: 300 }}>
@@ -57,6 +67,7 @@ export function LocationPicker({ value, onPick }) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <ClickToPlace onPick={onPick} />
+        <FlyTo focus={focus} />
         {value && <Marker position={value} icon={icon} />}
       </MapContainer>
     </div>
