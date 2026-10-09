@@ -6,6 +6,17 @@ import { ACCESS, CATEGORIES, HOST_MIN_AGE, RAIN_PLANS, REQUIRE_VERIFIED_FOR_HOME
 import { defaultStart } from '../lib/format.js';
 import { ChipGroup } from '../components/Chip.jsx';
 import { LocationPicker } from '../components/MapView.jsx';
+import AddressSearch from '../components/AddressSearch.jsx';
+
+// For home gatherings, the public pin lands a short random distance (about 150-300 m)
+// from the real address so the house itself is never marked on the map.
+function nearby([lat, lng]) {
+  const meters = 150 + Math.random() * 150;
+  const angle = Math.random() * 2 * Math.PI;
+  const dLat = (meters * Math.cos(angle)) / 111320;
+  const dLng = (meters * Math.sin(angle)) / (111320 * Math.cos((lat * Math.PI) / 180));
+  return [lat + dLat, lng + dLng];
+}
 
 export default function HostPage() {
   const { profile, user } = useAuth();
@@ -41,6 +52,8 @@ export default function HostPage() {
     access_notes: '',
   });
   const [pin, setPin] = useState(null);
+  const [geo, setGeo] = useState(null);     // exact spot of the address they picked
+  const [focus, setFocus] = useState(null); // tells the map where to glide to
   const [loadState, setLoadState] = useState(editing ? 'loading' : 'ready'); // loading | ready | missing | notyours
   const [error, setError] = useState('');
 
@@ -60,7 +73,7 @@ export default function HostPage() {
       const local = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
       setF({
         title: ev.title, description: ev.description || '', category: ev.category, audience: ev.audience,
-        starts_at: local, area_label: ev.area_label, is_private_location: ev.is_private_location, address: loc?.address || '',
+        starts_at: local, area_label: ev.area_label, is_private_location: ev.is_private_location, address: loc?.address || ev.address || '',
         size: ev.size, open_invite: ev.open_invite, tags: ev.tags || [], rain_plan: ev.rain_plan, rain_plan_note: ev.rain_plan_note || '',
         access_entry: ev.access_entry, access_shade: ev.access_shade, access_restrooms: ev.access_restrooms, access_noise: ev.access_noise,
         access_notes: ev.access_notes || '',
@@ -75,18 +88,33 @@ export default function HostPage() {
   const set = (k) => (v) => setF((prev) => ({ ...prev, [k]: v }));
   const onInput = (k) => (e) => set(k)(e.target.type === 'checkbox' ? e.target.checked : e.target.value);
 
+  // Picking an address moves the pin (and the map) there. Home gatherings get a nearby pin instead.
+  useEffect(() => {
+    if (!geo) return;
+    const spot = f.is_private_location ? nearby(geo) : geo;
+    setPin(spot);
+    setFocus({ pos: spot, key: Date.now() });
+  }, [geo, f.is_private_location]);
+
+  const pickAddress = (r) => {
+    setGeo([r.lat, r.lng]);
+    // Fill in the public place name if it's empty, but never with a home's street address
+    if (!f.is_private_location && !f.area_label.trim()) set('area_label')(r.placeName || r.line1);
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!pin) return setError('Tap the map to drop a pin where the gathering is.');
+    if (!pin) return setError('Add the address (or tap the map) so people know where the gathering is.');
     if (f.is_private_location && !f.address.trim()) return setError('Add the exact address. Only guests who RSVP will see it.');
     const timeChanged = !editing || f.starts_at !== original?.starts_local;
     if (timeChanged && new Date(f.starts_at) < new Date()) return setError('Pick a date and time in the future.');
     setSaving(true);
     const { address, starts_at, ...rest } = f;
+    const publicAddress = f.is_private_location ? null : (address.trim() || null); // public spots show the address to everyone
 
     if (editing) {
-      const changes = { ...rest, lat: pin[0], lng: pin[1], description: rest.description || null, rain_plan_note: rest.rain_plan_note || null, access_notes: rest.access_notes || null };
+      const changes = { ...rest, address: publicAddress, lat: pin[0], lng: pin[1], description: rest.description || null, rain_plan_note: rest.rain_plan_note || null, access_notes: rest.access_notes || null };
       if (timeChanged) changes.starts_at = new Date(starts_at).toISOString();
       const { error: err } = await supabase.from('events').update(changes).eq('id', editId);
       if (err) { setSaving(false); return setError(`Couldn't save: ${err.message}`); }
@@ -100,7 +128,7 @@ export default function HostPage() {
     }
 
     const { data, error: err } = await supabase.from('events')
-      .insert({ ...rest, starts_at: new Date(starts_at).toISOString(), lat: pin[0], lng: pin[1] })
+      .insert({ ...rest, address: publicAddress, starts_at: new Date(starts_at).toISOString(), lat: pin[0], lng: pin[1] })
       .select('id').single();
     if (err) { setSaving(false); return setError(`Couldn't post it: ${err.message}`); }
     if (f.is_private_location) {
@@ -157,13 +185,18 @@ export default function HostPage() {
           It's at a home. Hide the exact address until people RSVP.
         </label>
         {!canHostAtHome && <p className="small muted">Home gatherings unlock once you're a verified host. During the beta, our team verifies hosts by hand.</p>}
-        {f.is_private_location && (
-          <label className="field">Exact address (only RSVP'd guests see this)
-            <input value={f.address} onChange={onInput('address')} placeholder="Street address" />
-          </label>
-        )}
-        <p className="small">{f.is_private_location ? 'Tap the map near the area, not on the house. Guests see a general circle.' : 'Tap the map to drop a pin on the spot.'}</p>
-        <LocationPicker value={pin} onPick={setPin} />
+        <AddressSearch
+          value={f.address}
+          onChange={set('address')}
+          onPick={pickAddress}
+          label={f.is_private_location ? "Exact address (only RSVP'd guests see this)" : 'Address'}
+          placeholder={f.is_private_location ? 'Start typing the street address' : 'Start typing an address or place, like 2100 Barton Springs Rd'}
+          hint="Pick a match from the list and the map moves there for you."
+        />
+        <p className="small">{f.is_private_location
+          ? "The pin goes near the address, not on the house. Guests see a general circle until they RSVP."
+          : 'Pin in the wrong spot? Tap the map to move it, like to a pavilion or a corner of the park.'}</p>
+        <LocationPicker value={pin} onPick={setPin} focus={focus} />
       </fieldset>
 
       <fieldset>
