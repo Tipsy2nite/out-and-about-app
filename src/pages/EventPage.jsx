@@ -9,6 +9,8 @@ import ReportButton from '../components/ReportButton.jsx';
 import ReviewBox from '../components/ReviewBox.jsx';
 import Avatar from '../components/Avatar.jsx';
 import { HostRating } from '../components/Stars.jsx';
+import GuestRsvp from '../components/GuestRsvp.jsx';
+import ShareInvite from '../components/ShareInvite.jsx';
 
 const STATUS_TEXT = { moved: 'Moved', postponed: 'Postponed', cancelled: 'Cancelled' };
 
@@ -21,6 +23,7 @@ export default function EventPage() {
   const [going, setGoing] = useState(false);
   const [address, setAddress] = useState(null);
   const [guests, setGuests] = useState([]);
+  const [guestRsvps, setGuestRsvps] = useState([]);
   const [familiar, setFamiliar] = useState([]);
   const [trusted, setTrusted] = useState('');
   const [busy, setBusy] = useState(false);
@@ -49,6 +52,10 @@ export default function EventPage() {
       setGuests(g || []);
       setFamiliar(f || []);
       setTrusted(p?.trusted_contact_email || '');
+      if (data.host_id === user.id) {
+        const { data: gr } = await supabase.rpc('event_guest_rsvps', { eid: id });
+        setGuestRsvps(gr || []);
+      }
     }
   }, [id, user]);
 
@@ -133,12 +140,14 @@ export default function EventPage() {
           {ev.tags.length > 0 && <div className="chips">{ev.tags.map((t) => <span key={t} className="pill">{t}</span>)}</div>}
 
           {!isHost && ended && <p className="muted">This gathering has wrapped up.</p>}
-          {!isHost && !ended && (
+          {!isHost && !ended && !user && <GuestRsvp event={ev} disabled={cancelled} onChange={load} />}
+          {!isHost && !ended && user && (
             <button type="button" className={going ? 'btn btn-dark btn-wide' : 'btn btn-primary btn-wide'} onClick={toggleRsvp} disabled={busy || (cancelled && !going)}>
               {cancelled ? 'This gathering is cancelled' : going ? "You're in! (tap to cancel your RSVP)" : "I'm going"}
             </button>
           )}
           {msg && <p className="error">{msg}</p>}
+          {!ended && !cancelled && <ShareInvite event={ev} when={`${d.long} at ${d.time}`} className={isHost ? 'btn btn-primary btn-wide' : 'btn btn-outline btn-wide'} />}
 
           {isHost && (
             <section className="panel">
@@ -169,6 +178,14 @@ export default function EventPage() {
               <ul className="guest-list">
                 {guests.map((g) => <li key={g.user_id}><Link to={`/people/${g.user_id}`}>{g.display_name}</Link>{g.verified ? ' · Verified' : ''}</li>)}
               </ul>
+            )}
+            {isHost && guestRsvps.length > 0 && (
+              <>
+                <p className="small"><strong>Guests without an account</strong></p>
+                <ul className="guest-list">
+                  {guestRsvps.map((g, i) => <li key={i}>{g.name} · Guest</li>)}
+                </ul>
+              </>
             )}
             {!going && !isHost && <p className="small muted">RSVP to see who else is coming.</p>}
             {profile?.hide_from_guest_lists && <p className="small muted">You're hidden from guest lists.</p>}
