@@ -22,6 +22,7 @@ import Privacy from './pages/Privacy.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import DiscoverPage from './pages/DiscoverPage.jsx';
 import MessagesPage from './pages/MessagesPage.jsx';
+import GuestCancel from './pages/GuestCancel.jsx';
 
 function SetupNeeded() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
             <Route path="messages/:id" element={<RequireAuth><MessagesPage /></RequireAuth>} />
             <Route path="me" element={<RequireAuth><MePage /></RequireAuth>} />
             <Route path="signin" element={<SignIn />} />
+            <Route path="rsvp/cancel/:token" element={<GuestCancel />} />
             <Route path="reset-password" element={<ResetPassword />} />
             <Route path="welcome" element={<Welcome />} />
             <Route path="guidelines" element={<Guidelines />} />

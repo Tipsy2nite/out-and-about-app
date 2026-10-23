@@ -421,3 +421,10 @@ legend { font-weight: 700; margin-bottom: 8px; font-size: .95rem; }
 .addr-list button:hover, .addr-list button.on { background: var(--paper); }
 .addr-hint { margin: 6px 0 0; }
 .addr-line { margin: 0; }
+
+/* Invite links + guest RSVPs */
+.share-invite { display: flex; flex-direction: column; gap: 4px; }
+.share-invite .small { margin: 0; }
+.panel-guest { border: 2px solid var(--ink); }
+.panel-guest .stack { gap: 8px; }
+.guest-perk { margin: 0 0 6px; }
