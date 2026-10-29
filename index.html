@@ -6,7 +6,15 @@
     <meta name="description" content="Find and host outdoor gatherings near you: park picnics, porch concerts, open-invite parties, and niche meetups." />
     <meta name="theme-color" content="#FBF5E9" />
     <meta name="color-scheme" content="light dark" />
+    <!-- Security: only load code, data, and images from the places this app actually uses.
+         If you add a new outside service (a new map, font, or API), add its address here too.
+         The sha256 value is a fingerprint of the small script below; if you edit that script,
+         the fingerprint has to be updated or the script won't run. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-5KoII8rHB0gXcf3qmgvXxPyYxezr79w3Ey7wJVwmi+Y='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://gwgibtsdczrbqkjhrhbm.supabase.co; connect-src 'self' https://gwgibtsdczrbqkjhrhbm.supabase.co wss://gwgibtsdczrbqkjhrhbm.supabase.co https://photon.komoot.io https://api.open-meteo.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <script>
+      // Don't let other websites show this site inside a hidden frame (clickjacking)
+      if (window.top !== window.self) { document.documentElement.style.display = 'none'; }
       // Pick light or dark before the page draws, so there's no flash
       (function () {
         var t = null;
