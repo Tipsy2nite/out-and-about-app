@@ -40,7 +40,7 @@ p { margin: 0 0 .7em; }
 /* shell */
 .shell { min-height: 100vh; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom, 0); }
 .topbar { position: sticky; top: 0; z-index: 1000; display: flex; align-items: center; gap: 24px; padding: 12px 28px; padding-top: max(12px, env(safe-area-inset-top, 0px)); background: var(--paper); border-bottom: 2px solid var(--ink); }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--display); font-weight: 800; font-size: 1.4rem; }
+.brand { display: flex; align-items: center; gap: 10px; white-space: nowrap; flex-shrink: 0; text-decoration: none; font-family: var(--display); font-weight: 800; font-size: 1.4rem; }
 .topnav { display: flex; gap: 4px; flex-wrap: wrap; }
 .navlink { padding: 10px 14px; border-radius: 12px; text-decoration: none; font-weight: 700; }
 .navlink.active { background: var(--sun); }
@@ -445,3 +445,9 @@ legend { font-weight: 700; margin-bottom: 8px; font-size: .95rem; }
 .free-banner { display: flex; flex-direction: column; gap: 2px; margin: 0 0 16px; padding: 14px 18px; border: 2px solid var(--ink); border-radius: 18px; background: var(--sun); color: var(--on-sun); text-decoration: none; box-shadow: var(--shadow); }
 .free-banner strong { font-size: 1.05rem; }
 .panel-free { background: var(--card); }
+
+/* Keep the top menu on one line on laptop-width screens */
+@media (min-width: 761px) and (max-width: 1240px) {
+  .topbar { gap: 14px; padding-left: 18px; padding-right: 18px; }
+  .navlink { padding: 10px 9px; }
+}
