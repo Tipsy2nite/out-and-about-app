@@ -77,7 +77,8 @@ export default function EventPage() {
   const startedAgo = Date.now() - new Date(ev.starts_at).getTime();
   const ended = startedAgo > 3 * 3600000;
   const approval = !ev.open_invite; // the host approves each guest
-  const canReview = user && going && !isHost && !cancelled && startedAgo >= 3600000 && startedAgo <= 30 * 86400000;
+  const freeEvent = ev.listing_type === 'free_event'; // a Free in Austin listing, not run by the person who listed it
+  const canReview = !freeEvent && user && going && !isHost && !cancelled && startedAgo >= 3600000 && startedAgo <= 30 * 86400000;
 
   const toggleRsvp = async () => {
     if (!user) return nav('/signin', { state: { from: `/events/${id}` } });
@@ -123,8 +124,8 @@ export default function EventPage() {
   return (
     <article className="event">
       <header className="event-head" style={{ background: TINTS[ev.category] }}>
-        <Link to="/" className="back">Back</Link>
-        <p className="kind">{ev.category} · {ev.size}{ev.audience !== 'everyone' ? ` · For ${ev.audience}` : ''}{approval ? ' · Host approves guests' : ''}</p>
+        <Link to={freeEvent ? '/free' : '/'} className="back">{freeEvent ? 'Free in Austin' : 'Back'}</Link>
+        <p className="kind">{ev.category} · {ev.size}{ev.audience !== 'everyone' ? ` · For ${ev.audience}` : ''}{approval ? ' · Host approves guests' : ''}{freeEvent ? ' · Free Austin event' : ''}</p>
         <h1>{ev.title}</h1>
         {ev.status !== 'scheduled' && (
           <p className="status-banner"><strong>{STATUS_TEXT[ev.status]}.</strong> {ev.status_note}</p>
@@ -144,11 +145,18 @@ export default function EventPage() {
                 </>}
           </div>
 
+          {freeEvent && (
+            <section className="panel panel-free">
+              <p className="small"><strong>Free community event.</strong> Listed on Out &amp; About so you can find it and see who's going. It's run by the organizers, not by the person who listed it.</p>
+              {ev.source_url && <p><a className="btn btn-outline btn-sm" href={ev.source_url} target="_blank" rel="noopener noreferrer">Official event info</a></p>}
+            </section>
+          )}
+
           {ev.host && (
             <Link to={`/people/${ev.host.id}`} className="row-card">
               <Avatar name={ev.host.display_name} url={ev.host.avatar_url} />
-              <span><span className="muted small">Hosted by</span><br /><strong>{ev.host.display_name}</strong><br />
-                <HostRating rating={hostRating} /><br />
+              <span><span className="muted small">{freeEvent ? 'Listed by' : 'Hosted by'}</span><br /><strong>{ev.host.display_name}</strong><br />
+                {!freeEvent && <><HostRating rating={hostRating} /><br /></>}
                 <span className="small">{ev.host.verified ? 'Verified host' : 'Not verified yet'}</span></span>
             </Link>
           )}
@@ -256,10 +264,11 @@ export default function EventPage() {
 
           <section className="panel panel-safe">
             <h3>Safety</h3>
-            <p className="small">{ev.host?.verified ? 'Verified host: identity confirmed by our team.' : 'Host not verified yet. Stick to public spots and bring a friend.'}</p>
-            <p className="small">{hostRating?.review_count > 0
+            {!freeEvent && <p className="small">{ev.host?.verified ? 'Verified host: identity confirmed by our team.' : 'Host not verified yet. Stick to public spots and bring a friend.'}</p>}
+            {freeEvent && <p className="small">This is a public event run by its organizers. Check the official page for last-minute changes.</p>}
+            {!freeEvent && <p className="small">{hostRating?.review_count > 0
               ? `${ev.host?.display_name || 'This host'} has ${hostRating.review_count} review${Number(hostRating.review_count) === 1 ? '' : 's'} from past guests. Read them on their profile.`
-              : 'This host has no reviews yet. First-time hosts are welcome, so bring a friend if you like.'}</p>
+              : 'This host has no reviews yet. First-time hosts are welcome, so bring a friend if you like.'}</p>}
             <p className="small">{ev.is_private_location
               ? (approval ? 'Private home. The host approves each guest, and only approved guests see the address.' : 'Private home. The address is only shown to people who RSVP.')
               : (approval ? 'Public place. The host approves each guest.' : 'Public place, open to everyone.')}</p>

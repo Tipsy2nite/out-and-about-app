@@ -3,12 +3,14 @@ import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
 
 // Upcoming events plus the set of events the current user is going to.
+// listing: 'gathering' (member-hosted, the default), 'free_event' (Free in Austin), or 'all'.
 export default function useEvents(filter = {}) {
   const { user } = useAuth();
   const [events, setEvents] = useState(null);
   const [goingIds, setGoingIds] = useState(new Set());
   const [error, setError] = useState(null);
   const audience = filter.audience;
+  const listing = filter.listing || 'gathering';
 
   useEffect(() => {
     let live = true;
@@ -20,6 +22,7 @@ export default function useEvents(filter = {}) {
         .order('starts_at', { ascending: true })
         .limit(300);
       if (audience) q = q.eq('audience', audience);
+      if (listing !== 'all') q = q.eq('listing_type', listing);
       const { data, error: err } = await q;
       if (!live) return;
       if (err) { setError(err.message); setEvents([]); return; }
@@ -30,7 +33,7 @@ export default function useEvents(filter = {}) {
       }
     })();
     return () => { live = false; };
-  }, [user, audience]);
+  }, [user, audience, listing]);
 
   return { events, goingIds, error };
 }

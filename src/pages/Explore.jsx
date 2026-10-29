@@ -47,6 +47,7 @@ export default function Explore() {
         )}
         <InstallApp />
         <h2 className="page-title">What's happening outside</h2>
+        <Link to="/free" className="free-banner"><strong>Free in Austin</strong><span>Tree lightings, park shows, markets, and more free events around town →</span></Link>
         <p className="small strong for-label">Who's it for?</p>
         <div className="for-tiles" role="group" aria-label="Who's it for?">
           {AUDIENCES.map((a) => (

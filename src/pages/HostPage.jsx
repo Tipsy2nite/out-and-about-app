@@ -19,7 +19,7 @@ function nearby([lat, lng]) {
 }
 
 export default function HostPage() {
-  const { profile, user } = useAuth();
+  const { profile, user, isAdmin } = useAuth();
   const nav = useNavigate();
   const { id: editId } = useParams();           // set when editing an existing gathering
   const editing = Boolean(editId);
@@ -45,6 +45,8 @@ export default function HostPage() {
     address: '',
     size: params.get('size') || 'Cozy',
     open_invite: true,
+    listing_type: params.get('listing') === 'free_event' ? 'free_event' : 'gathering',
+    source_url: '',
     tags: params.get('kids') === '1' ? ['Kid-friendly'] : [],
     rain_plan: 'Move to backup spot',
     rain_plan_note: '',
@@ -77,6 +79,7 @@ export default function HostPage() {
         size: ev.size, open_invite: ev.open_invite, tags: ev.tags || [], rain_plan: ev.rain_plan, rain_plan_note: ev.rain_plan_note || '',
         access_entry: ev.access_entry, access_shade: ev.access_shade, access_restrooms: ev.access_restrooms, access_noise: ev.access_noise,
         access_notes: ev.access_notes || '',
+        listing_type: ev.listing_type || 'gathering', source_url: ev.source_url || '',
       });
       setPin([ev.lat, ev.lng]);
       setOriginal({ ...ev, starts_local: local, address: loc?.address || '' });
@@ -106,11 +109,14 @@ export default function HostPage() {
     e.preventDefault();
     setError('');
     if (!pin) return setError('Add the address (or tap the map) so people know where the gathering is.');
-    if (f.is_private_location && !f.address.trim()) return setError('Add the exact address. Only guests who RSVP will see it.');
+    if (f.listing_type !== 'free_event' && f.is_private_location && !f.address.trim()) return setError('Add the exact address. Only guests who RSVP will see it.');
     const timeChanged = !editing || f.starts_at !== original?.starts_local;
     if (timeChanged && new Date(f.starts_at) < new Date()) return setError('Pick a date and time in the future.');
     setSaving(true);
-    const { address, starts_at, ...rest } = f;
+    const { address, starts_at, ...fields } = f;
+    const freeEvent = f.listing_type === 'free_event';
+    const rest = { ...fields, is_private_location: freeEvent ? false : fields.is_private_location, source_url: freeEvent ? (fields.source_url.trim() || null) : null };
+    if (rest.source_url && !/^https:\/\/\S+$/.test(rest.source_url)) { setSaving(false); return setError('The official event link should start with https://'); }
     const publicAddress = f.is_private_location ? null : (address.trim() || null); // public spots show the address to everyone
 
     if (editing) {
@@ -158,6 +164,21 @@ export default function HostPage() {
         ? <p className="muted">If you change the time, place, or address, everyone who RSVP'd gets an email. To move, postpone, or cancel, use the buttons on the gathering's page.</p>
         : <p className="muted">Big party or three people and a chessboard. Both count.</p>}
 
+      {(isAdmin || f.listing_type === 'free_event') && (
+        <fieldset>
+          <legend>What are you posting?</legend>
+          <ChipGroup options={[['gathering', "A gathering I'm hosting"], ['free_event', 'A free Austin event']]} value={f.listing_type} onChange={(v) => setF((prev) => ({ ...prev, listing_type: v, is_private_location: v === 'free_event' ? false : prev.is_private_location }))} />
+          {f.listing_type === 'free_event' && (
+            <>
+              <p className="small">Shows on the Free in Austin page instead of Explore, labeled as a community event you're listing (not hosting). Always at a public place.</p>
+              <label className="field">Official event link (optional)
+                <input type="url" inputMode="url" maxLength={500} value={f.source_url} onChange={onInput('source_url')} placeholder="https://…" />
+              </label>
+            </>
+          )}
+        </fieldset>
+      )}
+
       <label className="field">What's happening?
         <input required minLength={3} maxLength={90} value={f.title} onChange={onInput('title')} placeholder="Sunday kite flying" />
       </label>
@@ -181,7 +202,7 @@ export default function HostPage() {
           <input required value={f.area_label} onChange={onInput('area_label')} placeholder="Zilker Park, Great Lawn" />
         </label>
         <label className="check">
-          <input type="checkbox" checked={f.is_private_location} onChange={onInput('is_private_location')} disabled={!canHostAtHome} />
+          <input type="checkbox" checked={f.is_private_location && f.listing_type !== 'free_event'} onChange={onInput('is_private_location')} disabled={!canHostAtHome || f.listing_type === 'free_event'} />
           It's at a home. Hide the exact address until people RSVP.
         </label>
         {!canHostAtHome && <p className="small muted">Home gatherings unlock once you're a verified host. During the beta, our team verifies hosts by hand.</p>}

@@ -5,7 +5,7 @@ import Chip from '../components/Chip.jsx';
 import { CATEGORIES } from '../lib/constants.js';
 
 export default function MapPage() {
-  const { events } = useEvents();
+  const { events } = useEvents({ listing: 'all' });
   const [cat, setCat] = useState('All');
   const shown = (events || []).filter((e) => cat === 'All' || e.category === cat);
   return (
@@ -15,7 +15,7 @@ export default function MapPage() {
         {['All', ...CATEGORIES].map((c) => <Chip key={c} on={cat === c} onClick={() => setCat(c)}>{c}</Chip>)}
       </div>
       <MapView events={shown} height="65vh" />
-      <p className="small muted legend">Solid pins are exact spots. Dashed circles are general areas until you RSVP.</p>
+      <p className="small muted legend">Solid pins are exact spots. Dashed circles are general areas until you RSVP. Includes member gatherings and free Austin events.</p>
     </div>
   );
 }

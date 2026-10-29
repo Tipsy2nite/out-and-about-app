@@ -39,7 +39,7 @@ export default function PersonPage() {
       ]);
       setRating(hr?.[0] ?? null);
       setReviews(rv || []);
-      const { data: ev } = await supabase.from('events').select('*').eq('host_id', id)
+      const { data: ev } = await supabase.from('events').select('*').eq('host_id', id).eq('listing_type', 'gathering')
         .gte('starts_at', new Date().toISOString()).order('starts_at');
       setEvents(ev || []);
       const { data: b } = await supabase.from('blocks').select('blocked_id').eq('blocked_id', id).maybeSingle();
