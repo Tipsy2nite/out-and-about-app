@@ -21,6 +21,8 @@ export default function EventPage() {
   const [ev, setEv] = useState(undefined);
   const [stats, setStats] = useState({ going: 0, first_timers: 0 });
   const [going, setGoing] = useState(false);
+  const [requested, setRequested] = useState(false);
+  const [requests, setRequests] = useState([]);
   const [address, setAddress] = useState(null);
   const [guests, setGuests] = useState([]);
   const [guestRsvps, setGuestRsvps] = useState([]);
@@ -41,20 +43,25 @@ export default function EventPage() {
     if (s?.[0]) setStats(s[0]);
     if (user) {
       const [{ data: r }, { data: loc }, { data: g }, { data: f }, { data: p }] = await Promise.all([
-        supabase.from('rsvps').select('event_id').eq('event_id', id).eq('user_id', user.id).maybeSingle(),
+        supabase.from('rsvps').select('event_id, status').eq('event_id', id).eq('user_id', user.id).maybeSingle(),
         supabase.from('event_locations').select('address').eq('event_id', id).maybeSingle(),
         supabase.rpc('event_guests', { eid: id }),
         supabase.rpc('familiar_faces', { eid: id }),
         supabase.from('profile_private').select('trusted_contact_email').eq('user_id', user.id).maybeSingle(),
       ]);
-      setGoing(Boolean(r));
+      setGoing(r?.status === 'going');
+      setRequested(r?.status === 'requested');
       setAddress(loc?.address ?? null);
       setGuests(g || []);
       setFamiliar(f || []);
       setTrusted(p?.trusted_contact_email || '');
       if (data.host_id === user.id) {
-        const { data: gr } = await supabase.rpc('event_guest_rsvps', { eid: id });
+        const [{ data: gr }, { data: rq }] = await Promise.all([
+          supabase.rpc('event_guest_rsvps', { eid: id }),
+          supabase.rpc('event_requests', { eid: id }),
+        ]);
         setGuestRsvps(gr || []);
+        setRequests(rq || []);
       }
     }
   }, [id, user]);
@@ -69,15 +76,27 @@ export default function EventPage() {
   const cancelled = ev.status === 'cancelled';
   const startedAgo = Date.now() - new Date(ev.starts_at).getTime();
   const ended = startedAgo > 3 * 3600000;
+  const approval = !ev.open_invite; // the host approves each guest
   const canReview = user && going && !isHost && !cancelled && startedAgo >= 3600000 && startedAgo <= 30 * 86400000;
 
   const toggleRsvp = async () => {
     if (!user) return nav('/signin', { state: { from: `/events/${id}` } });
     if (!profile) return nav('/welcome', { state: { from: `/events/${id}` } });
     setBusy(true); setMsg('');
-    const { error } = going
+    const { error } = going || requested
       ? await supabase.from('rsvps').delete().eq('event_id', id).eq('user_id', user.id)
       : await supabase.from('rsvps').insert({ event_id: id });
+    if (error) setMsg(`That didn't go through: ${error.message}`);
+    await load();
+    setBusy(false);
+  };
+
+  const decide = async (guestId, approve, name) => {
+    if (!approve && !window.confirm(`Decline ${name}? They'll get a kind note that it didn't work out this time.`)) return;
+    setBusy(true); setMsg('');
+    const { error } = approve
+      ? await supabase.from('rsvps').update({ status: 'going' }).eq('event_id', id).eq('user_id', guestId)
+      : await supabase.from('rsvps').delete().eq('event_id', id).eq('user_id', guestId);
     if (error) setMsg(`That didn't go through: ${error.message}`);
     await load();
     setBusy(false);
@@ -105,7 +124,7 @@ export default function EventPage() {
     <article className="event">
       <header className="event-head" style={{ background: TINTS[ev.category] }}>
         <Link to="/" className="back">Back</Link>
-        <p className="kind">{ev.category} · {ev.size}{ev.audience !== 'everyone' ? ` · For ${ev.audience}` : ''}</p>
+        <p className="kind">{ev.category} · {ev.size}{ev.audience !== 'everyone' ? ` · For ${ev.audience}` : ''}{approval ? ' · Host approves guests' : ''}</p>
         <h1>{ev.title}</h1>
         {ev.status !== 'scheduled' && (
           <p className="status-banner"><strong>{STATUS_TEXT[ev.status]}.</strong> {ev.status_note}</p>
@@ -117,7 +136,7 @@ export default function EventPage() {
           <p className="big">{d.long} · {d.time}</p>
           <div>
             {ev.is_private_location && !address
-              ? <><p className="big">{ev.area_label}, general area</p><p className="muted">The exact address unlocks when you RSVP.</p></>
+              ? <><p className="big">{ev.area_label}, general area</p><p className="muted">{approval ? (requested ? 'The exact address unlocks once the host approves you.' : 'The host approves each guest. The exact address unlocks once you\'re approved.') : 'The exact address unlocks when you RSVP.'}</p></>
               : <>
                   <p className="big">{ev.is_private_location ? street : ev.area_label}</p>
                   {!ev.is_private_location && ev.address && ev.address !== ev.area_label && <p className="addr-line">{ev.address}</p>}
@@ -142,9 +161,19 @@ export default function EventPage() {
           {!isHost && ended && <p className="muted">This gathering has wrapped up.</p>}
           {!isHost && !ended && !user && <GuestRsvp event={ev} disabled={cancelled} onChange={load} />}
           {!isHost && !ended && user && (
-            <button type="button" className={going ? 'btn btn-dark btn-wide' : 'btn btn-primary btn-wide'} onClick={toggleRsvp} disabled={busy || (cancelled && !going)}>
-              {cancelled ? 'This gathering is cancelled' : going ? "You're in! (tap to cancel your RSVP)" : "I'm going"}
-            </button>
+            <>
+              <button type="button" className={going || requested ? 'btn btn-dark btn-wide' : 'btn btn-primary btn-wide'} onClick={toggleRsvp} disabled={busy || (cancelled && !going && !requested)}>
+                {cancelled ? 'This gathering is cancelled'
+                  : going ? "You're in! (tap to cancel your RSVP)"
+                  : requested ? 'Request sent (tap to take it back)'
+                  : approval ? 'Ask to join' : "I'm going"}
+              </button>
+              {approval && !going && !cancelled && (
+                <p className="small muted">{requested
+                  ? 'The host will look at your profile and approve or decline. We\'ll email you either way.'
+                  : 'This host approves each guest. They\'ll see your profile, so make sure it says a little about you.'}</p>
+              )}
+            </>
           )}
           {msg && <p className="error">{msg}</p>}
           {!ended && !cancelled && <ShareInvite event={ev} when={`${d.long} at ${d.time}`} className={isHost ? 'btn btn-primary btn-wide' : 'btn btn-outline btn-wide'} />}
@@ -152,6 +181,28 @@ export default function EventPage() {
           {isHost && (
             <section className="panel">
               <h3>You're hosting</h3>
+              {approval && (
+                <div className="requests">
+                  <p className="small"><strong>{requests.length === 0 ? 'No one waiting for approval' : `${requests.length} waiting for approval`}</strong>
+                    {' '}· You approve each guest. Only approved guests see the {ev.is_private_location ? 'address and ' : ''}guest list.</p>
+                  {requests.length > 0 && (
+                    <ul className="request-list">
+                      {requests.map((r) => (
+                        <li key={r.user_id} className="request-row">
+                          <Link to={`/people/${r.user_id}`} className="request-who">
+                            <Avatar name={r.display_name} url={r.avatar_url} />
+                            <span><strong>{r.display_name}</strong>{r.verified ? ' · Verified' : ''}{r.area ? <><br /><span className="small muted">{r.area}</span></> : null}</span>
+                          </Link>
+                          <span className="request-actions">
+                            <button type="button" className="btn btn-primary btn-sm" disabled={busy} onClick={() => decide(r.user_id, true, r.display_name)}>Approve</button>
+                            <button type="button" className="linkish" disabled={busy} onClick={() => decide(r.user_id, false, r.display_name)}>Decline</button>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
               <p className="small">Changing plans updates this page and emails every guest.</p>
               <p><Link to={`/host/${ev.id}/edit`} className="btn btn-sm">Edit details</Link></p>
               <div className="chips">
@@ -187,7 +238,7 @@ export default function EventPage() {
                 </ul>
               </>
             )}
-            {!going && !isHost && <p className="small muted">RSVP to see who else is coming.</p>}
+            {!going && !isHost && <p className="small muted">{approval ? 'Once the host approves you, you\'ll see who else is coming.' : 'RSVP to see who else is coming.'}</p>}
             {profile?.hide_from_guest_lists && <p className="small muted">You're hidden from guest lists.</p>}
           </section>
 
@@ -209,7 +260,9 @@ export default function EventPage() {
             <p className="small">{hostRating?.review_count > 0
               ? `${ev.host?.display_name || 'This host'} has ${hostRating.review_count} review${Number(hostRating.review_count) === 1 ? '' : 's'} from past guests. Read them on their profile.`
               : 'This host has no reviews yet. First-time hosts are welcome, so bring a friend if you like.'}</p>
-            <p className="small">{ev.is_private_location ? 'Private home. The address is only shown to people who RSVP.' : 'Public place, open to everyone.'}</p>
+            <p className="small">{ev.is_private_location
+              ? (approval ? 'Private home. The host approves each guest, and only approved guests see the address.' : 'Private home. The address is only shown to people who RSVP.')
+              : (approval ? 'Public place. The host approves each guest.' : 'Public place, open to everyone.')}</p>
             {user && <a className="btn btn-outline btn-sm" href={shareHref}>Tell a friend where you'll be</a>}
             <ReportButton targetType="event" targetId={ev.id} label="Report this gathering" />
           </section>

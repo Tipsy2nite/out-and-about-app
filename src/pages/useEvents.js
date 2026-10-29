@@ -25,7 +25,7 @@ export default function useEvents(filter = {}) {
       if (err) { setError(err.message); setEvents([]); return; }
       setEvents(data);
       if (user) {
-        const { data: mine } = await supabase.from('rsvps').select('event_id').eq('user_id', user.id);
+        const { data: mine } = await supabase.from('rsvps').select('event_id').eq('user_id', user.id).eq('status', 'going');
         if (live) setGoingIds(new Set((mine || []).map((r) => r.event_id)));
       }
     })();

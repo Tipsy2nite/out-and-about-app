@@ -218,10 +218,14 @@ export default function HostPage() {
         </label>
       </fieldset>
 
-      <label className="check">
-        <input type="checkbox" checked={f.open_invite} onChange={onInput('open_invite')} />
-        Open invite: anyone nearby can see and join
-      </label>
+      <fieldset>
+        <legend>Who can come?</legend>
+        <ChipGroup options={[[true, 'Open invite'], [false, 'I approve each guest']]} value={f.open_invite} onChange={set('open_invite')} />
+        <p className="small">{f.open_invite
+          ? 'Anyone can RSVP right away' + (f.is_private_location ? ' and see the address.' : '.')
+          : 'People ask to join. You look at their profile and approve or decline. Only approved guests see ' + (f.is_private_location ? 'the address and ' : '') + 'the guest list.'}
+          {editing && original && original.open_invite === false && f.open_invite ? ' Switching to open invite approves everyone who\'s waiting.' : ''}</p>
+      </fieldset>
 
       <p className="small">By posting, you agree to the <Link to="/guidelines">Host Agreement and Community Guidelines</Link>.</p>
       {error && <p className="error" role="alert">{error}</p>}
