@@ -17,6 +17,7 @@ export default function EventCard({ event, going, requested, rating }) {
         <span className="ticket-title">{event.title}</span>
         <span className="muted">{d.time} · {event.area_label}{event.is_private_location ? ' (general area)' : ''}</span>
         <span className="ticket-tags">
+          {event.listing_type === 'free_event' && <span className="pill pill-sun">Free</span>}
           {event.access_entry === 'Step-free' && <span className="pill">Step-free</span>}
           {event.audience !== 'everyone' && <span className="pill">For {event.audience}</span>}
           {rating?.review_count > 0 && <span className="pill pill-star">★ {Number(rating.avg_rating).toFixed(1)} host</span>}

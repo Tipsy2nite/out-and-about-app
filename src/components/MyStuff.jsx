@@ -25,7 +25,7 @@ export default function MyStuff() {
         supabase.from('circle_members').select('circle:circles(id, name, rhythm)').eq('user_id', user.id),
         supabase.from('waves').select('created_at, from:profiles!waves_from_id_fkey(id, display_name)').eq('to_id', user.id).order('created_at', { ascending: false }),
         // Gatherings you went to in the last 30 days that you haven't rated yet
-        supabase.from('rsvps').select('event:events!inner(id, title, starts_at, host_id, status, host:profiles!events_host_id_fkey(display_name))')
+        supabase.from('rsvps').select('event:events!inner(id, title, starts_at, host_id, status, listing_type, host:profiles!events_host_id_fkey(display_name))')
           .eq('user_id', user.id).eq('status', 'going').lte('event.starts_at', hourAgo).gte('event.starts_at', monthAgo),
         supabase.from('host_reviews').select('event_id').eq('reviewer_id', user.id),
       ]);
@@ -36,7 +36,7 @@ export default function MyStuff() {
       setWaves(w || []);
       const reviewed = new Set((done || []).map((d) => d.event_id));
       setToRate((past || []).map((x) => x.event)
-        .filter((e) => e && e.host_id !== user.id && e.status !== 'cancelled' && !reviewed.has(e.id))
+        .filter((e) => e && e.host_id !== user.id && e.status !== 'cancelled' && e.listing_type !== 'free_event' && !reviewed.has(e.id))
         .sort((a, b) => b.starts_at.localeCompare(a.starts_at)));
     })();
     return () => { live = false; };

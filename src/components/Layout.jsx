@@ -6,6 +6,7 @@ import ThemeToggle from './ThemeToggle.jsx';
 
 const NAV = [
   ['/', 'Explore'],
+  ['/free', 'Free in Austin'],
   ['/map', 'Map'],
   ['/parents/moms', 'Moms'],
   ['/parents/dads', 'Dads'],
@@ -63,6 +64,7 @@ export default function Layout() {
       <main id="main" className="main"><Outlet /></main>
       <nav className="tabbar" aria-label="Main">
         <NavLink to="/" end className="tab">Explore</NavLink>
+        <NavLink to="/free" className="tab">Free</NavLink>
         <NavLink to="/map" className="tab">Map</NavLink>
         <NavLink to="/discover" className="tab">Discover</NavLink>
         <NavLink to="/circles" className="tab">Circles</NavLink>
