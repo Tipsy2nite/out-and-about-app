@@ -428,3 +428,10 @@ legend { font-weight: 700; margin-bottom: 8px; font-size: .95rem; }
 .panel-guest { border: 2px solid var(--ink); }
 .panel-guest .stack { gap: 8px; }
 .guest-perk { margin: 0 0 6px; }
+
+/* Host approval: people waiting to join */
+.requests { margin: 4px 0 12px; }
+.request-list { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 10px; }
+.request-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border: 1.5px solid var(--ink); border-radius: 14px; background: var(--card); }
+.request-who { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; min-width: 0; }
+.request-actions { display: flex; align-items: center; gap: 12px; }
