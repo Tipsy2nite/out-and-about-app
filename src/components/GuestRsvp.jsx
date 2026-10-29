@@ -68,6 +68,22 @@ export default function GuestRsvp({ event, disabled, onChange }) {
     );
   }
 
+  // The host approves each guest, so they need a profile to look at
+  if (!event.open_invite) {
+    return step === 'button'
+      ? <button type="button" className="btn btn-primary btn-wide" onClick={() => setStep('choose')} disabled={disabled}>
+          {disabled ? 'This gathering is cancelled' : 'Ask to join'}
+        </button>
+      : <section className="panel panel-guest">
+          <h3>This host approves each guest</h3>
+          <p className="small">Make a free account so the host can see a little about you. Once they approve you, you'll see {event.is_private_location ? 'the address and ' : ''}who else is coming.</p>
+          <div className="stack">
+            <button type="button" className="btn btn-primary btn-wide" onClick={join}>Make a free account</button>
+          </div>
+          <p className="small">Already a member? <button type="button" className="linkish" onClick={signIn}>Sign in</button></p>
+        </section>;
+  }
+
   if (step === 'button') {
     return (
       <button type="button" className="btn btn-primary btn-wide" onClick={() => setStep('choose')} disabled={disabled}>

@@ -21,16 +21,16 @@ export default function MyStuff() {
       const hourAgo = new Date(Date.now() - 3600000).toISOString();
       const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString();
       const [{ data: r }, { data: c }, { data: w }, { data: past }, { data: done }] = await Promise.all([
-        supabase.from('rsvps').select('event:events(*)').eq('user_id', user.id),
+        supabase.from('rsvps').select('status, event:events(*)').eq('user_id', user.id),
         supabase.from('circle_members').select('circle:circles(id, name, rhythm)').eq('user_id', user.id),
         supabase.from('waves').select('created_at, from:profiles!waves_from_id_fkey(id, display_name)').eq('to_id', user.id).order('created_at', { ascending: false }),
         // Gatherings you went to in the last 30 days that you haven't rated yet
         supabase.from('rsvps').select('event:events!inner(id, title, starts_at, host_id, status, host:profiles!events_host_id_fkey(display_name))')
-          .eq('user_id', user.id).lte('event.starts_at', hourAgo).gte('event.starts_at', monthAgo),
+          .eq('user_id', user.id).eq('status', 'going').lte('event.starts_at', hourAgo).gte('event.starts_at', monthAgo),
         supabase.from('host_reviews').select('event_id').eq('reviewer_id', user.id),
       ]);
       if (!live) return;
-      setPlans((r || []).map((x) => x.event).filter((e) => e && e.starts_at >= now && e.host_id !== user.id)
+      setPlans((r || []).map((x) => x.event && { ...x.event, my_status: x.status }).filter((e) => e && e.starts_at >= now && e.host_id !== user.id)
         .sort((a, b) => a.starts_at.localeCompare(b.starts_at)));
       setCircles((c || []).map((x) => x.circle).filter(Boolean));
       setWaves(w || []);
@@ -67,7 +67,7 @@ export default function MyStuff() {
 
       <div>
         <h2>My plans</h2>
-        <div className="stack">{plans.map((e) => <EventCard key={e.id} event={e} going />)}</div>
+        <div className="stack">{plans.map((e) => <EventCard key={e.id} event={e} going={e.my_status === 'going'} requested={e.my_status === 'requested'} />)}</div>
         {plans.length === 0 && <p className="muted">Your calendar is wide open. <Link to="/">Find something</Link>.</p>}
       </div>
 

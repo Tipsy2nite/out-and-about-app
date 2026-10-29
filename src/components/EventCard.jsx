@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { TINTS } from '../lib/constants.js';
 import { eventDateParts } from '../lib/format.js';
 
-export default function EventCard({ event, going, rating }) {
+export default function EventCard({ event, going, requested, rating }) {
   const d = eventDateParts(event.starts_at);
   const off = event.status !== 'scheduled';
   return (
@@ -21,7 +21,9 @@ export default function EventCard({ event, going, rating }) {
           {event.audience !== 'everyone' && <span className="pill">For {event.audience}</span>}
           {rating?.review_count > 0 && <span className="pill pill-star">★ {Number(rating.avg_rating).toFixed(1)} host</span>}
           {off && <span className="pill pill-dark">{event.status}</span>}
+          {!event.open_invite && !going && !requested && <span className="pill">Host approves guests</span>}
           {going && <span className="pill pill-dark">You're in</span>}
+          {requested && <span className="pill">Requested</span>}
         </span>
       </div>
     </Link>
