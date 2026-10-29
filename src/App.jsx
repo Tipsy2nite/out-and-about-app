@@ -23,6 +23,7 @@ import AdminPage from './pages/AdminPage.jsx';
 import DiscoverPage from './pages/DiscoverPage.jsx';
 import MessagesPage from './pages/MessagesPage.jsx';
 import GuestCancel from './pages/GuestCancel.jsx';
+import FreeEventsPage from './pages/FreeEventsPage.jsx';
 
 function SetupNeeded() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<Explore />} />
+            <Route path="free" element={<FreeEventsPage />} />
             <Route path="map" element={<MapPage />} />
             <Route path="events/:id" element={<EventPage />} />
             <Route path="host" element={<RequireAuth><HostPage /></RequireAuth>} />
