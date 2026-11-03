@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import { forgetGuestToken, saveGuestToken, savedGuestToken } from '../lib/guestRsvp.js';
+import { trackCustom } from '../lib/pixel.js';
 
 // What a signed-out visitor sees instead of "I'm going":
 // make an account, sign in, or RSVP as a guest (name + email).
@@ -34,6 +35,7 @@ export default function GuestRsvp({ event, disabled, onChange }) {
     const { data, error: err } = await supabase.rpc('guest_rsvp', { eid: event.id, p_name: name, p_email: email });
     setBusy(false);
     if (err) { setError(err.message); return; }
+    trackCustom('RSVP');
     saveGuestToken(event.id, data);
     setGuest({ token: data, name: name.trim() });
     setStep('button');
