@@ -3,6 +3,13 @@ import { createRoot } from 'react-dom/client';
 import 'leaflet/dist/leaflet.css';
 import './styles.css';
 import App from './App.jsx';
+import { captureAttribution } from './lib/attribution.js';
+import { initPixel } from './lib/pixel.js';
+
+// Note which tracking link (utm_* tags) brought this visitor, before the router runs
+captureAttribution();
+// Meta Pixel for ad measurement (does nothing until a Pixel ID is set)
+initPixel();
 
 // Remember the browser's "install this app" offer so the Install button can use it later
 window.addEventListener('beforeinstallprompt', (e) => {
