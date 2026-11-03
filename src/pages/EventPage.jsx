@@ -10,6 +10,7 @@ import ReviewBox from '../components/ReviewBox.jsx';
 import Avatar from '../components/Avatar.jsx';
 import { HostRating } from '../components/Stars.jsx';
 import GuestRsvp from '../components/GuestRsvp.jsx';
+import { trackCustom } from '../lib/pixel.js';
 import ShareInvite from '../components/ShareInvite.jsx';
 
 const STATUS_TEXT = { moved: 'Moved', postponed: 'Postponed', cancelled: 'Cancelled' };
@@ -88,6 +89,7 @@ export default function EventPage() {
       ? await supabase.from('rsvps').delete().eq('event_id', id).eq('user_id', user.id)
       : await supabase.from('rsvps').insert({ event_id: id });
     if (error) setMsg(`That didn't go through: ${error.message}`);
+    else if (!going && !requested) trackCustom('RSVP');
     await load();
     setBusy(false);
   };

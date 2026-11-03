@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { PROJECT_EMAIL } from '../lib/constants.js';
 
-export const PRIVACY_UPDATED = 'October 5, 2026';
+export const PRIVACY_UPDATED = 'November 2, 2026';
 
 export default function Privacy() {
   return (
@@ -31,8 +31,10 @@ export default function Privacy() {
         <li><strong>Friends and messages:</strong> friend requests you send and accept, and private messages between you and your friends. We store messages so they can be delivered. Our team doesn't read them in the app.</li>
         <li><strong>RSVPs, circles you join, circle posts, waves, host reviews, reports, and people you block.</strong></li>
         <li><strong>Email settings:</strong> which emails you want from us.</li>
+        <li><strong>How you found us:</strong> your answer to "How did you hear about us?" if you give one, and the campaign tags on the link you first arrived from (for example, that it came from our Instagram). This helps us see which outreach works.</li>
       </ul>
-      <p>We don't use advertising trackers or analytics tools, and we don't collect your device's location. The map only shows places you or hosts choose.</p>
+      <p>We use the <strong>Meta Pixel</strong>, an advertising measurement tool from Meta (the company behind Facebook and Instagram), to see whether our Instagram and Facebook ads lead people to visit, sign up, or RSVP. When you use the site, the Pixel lets Meta receive which pages you view (including which gathering pages), and whether you create an account or RSVP, along with your IP address and browser details. We never send Meta your name, email, date of birth, profile, or messages. Meta may connect this to your Facebook or Instagram account and use it under its own <a href="https://www.facebook.com/privacy/policy" target="_blank" rel="noreferrer">privacy policy</a>.</p>
+      <p>We don't collect your device's location. The map only shows places you or hosts choose.</p>
 
       <h2>Who can see what</h2>
       <ul>
@@ -51,7 +53,7 @@ export default function Privacy() {
         <li>To keep people safe: age checks, reviewing reports, removing content or accounts that break our <Link to="/guidelines">Community Guidelines</Link>, and stopping banned people from signing up again.</li>
         <li>To email you: sign-up confirmation and password resets, plus (if turned on in your settings) changes to gatherings you're going to, day-before reminders, and new RSVPs to gatherings you host. You can turn these off on your <Link to="/me">Me page</Link>.</li>
       </ul>
-      <p>We don't sell or rent your personal information, and we don't share it with advertisers.</p>
+      <p>We don't sell or rent your personal information. The only advertising company we work with is Meta, and only through the Pixel described above, to measure our own ads.</p>
 
       <h2>Services we use</h2>
       <p>We rely on a few companies to run the app. They handle your information only to provide their service to us:</p>
@@ -59,6 +61,7 @@ export default function Privacy() {
         <li><strong>Supabase</strong> stores our database, logins, and profile photos (servers in the United States).</li>
         <li><strong>Resend</strong> delivers our emails.</li>
         <li><strong>GitHub Pages</strong> hosts the website.</li>
+        <li><strong>Meta</strong> measures our Instagram and Facebook ads through the Meta Pixel (see "What we collect").</li>
         <li><strong>OpenStreetMap</strong> provides map images, <strong>Open-Meteo</strong> provides weather forecasts for gatherings, and <strong>Google Fonts</strong> provides our fonts. Your browser contacts these directly, so they receive your IP address, like any website you visit.</li>
       </ul>
       <p>We may also share information if the law requires it, or if we believe it's needed to protect someone's safety.</p>
@@ -68,6 +71,7 @@ export default function Privacy() {
         <li><strong>See and change your information</strong> any time on your <Link to="/me">Me page</Link>.</li>
         <li><strong>Hide your age</strong> or <strong>hide yourself from guest lists</strong> in your settings.</li>
         <li><strong>Turn emails off</strong> under "Email me when…" on your Me page.</li>
+        <li><strong>Opt out of the Meta Pixel:</strong> turn on Global Privacy Control or "Do Not Track" in your browser and our site won't load the Pixel at all. You can also block it with a tracker blocker, and manage how Meta uses activity from other sites in your Facebook or Instagram ad settings.</li>
         <li><strong>Delete your account</strong> from the bottom of your Me page. This permanently removes your profile, photo, gatherings you host, RSVPs, posts, reviews you wrote, and your settings. Emails already sent can't be unsent, and copies may remain in our providers' backups for a short time before they're overwritten.</li>
         <li>For anything else, including a copy of your information, email <a href={`mailto:${PROJECT_EMAIL}`}>{PROJECT_EMAIL}</a>.</li>
       </ul>

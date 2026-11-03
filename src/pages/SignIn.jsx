@@ -3,6 +3,8 @@ import { Link, Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
 import { HOST_MIN_AGE, MIN_AGE, ageFrom } from '../lib/constants.js';
+import { HEARD_ABOUT, getAttribution } from '../lib/attribution.js';
+import { track } from '../lib/pixel.js';
 
 const MIN_PASSWORD = 8;
 
@@ -16,6 +18,7 @@ export default function SignIn() {
   const [password, setPassword] = useState('');
   const [birthdate, setBirthdate] = useState('');
   const [hideAge, setHideAge] = useState(false);
+  const [heardAbout, setHeardAbout] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState(null); // { title, body }
@@ -46,7 +49,10 @@ export default function SignIn() {
     if (password.length < MIN_PASSWORD) { setError(`Use at least ${MIN_PASSWORD} characters for your password.`); return; }
     const { data, error: err } = await supabase.auth.signUp({
       email, password,
-      options: { emailRedirectTo: redirectTo, data: { birthdate, hide_age: hideAge } },
+      options: {
+        emailRedirectTo: redirectTo,
+        data: { birthdate, hide_age: hideAge, heard_about: heardAbout || null, ...getAttribution() },
+      },
     });
     if (err) { setError(err.message); return; }
     // Supabase returns a user with no identities when the email is already registered.
@@ -55,6 +61,7 @@ export default function SignIn() {
       setError('That email already has an account. Sign in below, or use "Forgot password?" to set a new password.');
       return;
     }
+    track('CompleteRegistration');
     if (data.session) return; // confirmation turned off — already signed in
     setNotice({
       title: 'Confirm your email',
@@ -134,6 +141,12 @@ export default function SignIn() {
                 <label className="check">
                   <input type="checkbox" checked={hideAge} onChange={(e) => setHideAge(e.target.checked)} />
                   <span>Hide my age on my profile</span>
+                </label>
+                <label className="field">How did you hear about us? <span className="small muted">(optional)</span>
+                  <select value={heardAbout} onChange={(e) => setHeardAbout(e.target.value)}>
+                    <option value="">Choose one</option>
+                    {HEARD_ABOUT.map((o) => <option key={o} value={o}>{o}</option>)}
+                  </select>
                 </label>
               </>
             )}
