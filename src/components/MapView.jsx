@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 're
 import L from 'leaflet';
 import { Link } from 'react-router-dom';
 import { TINTS, AUSTIN } from '../lib/constants.js';
-import { eventDateParts } from '../lib/format.js';
+import { eventDateParts, timeRange } from '../lib/format.js';
 
 function pinIcon(event) {
   const d = eventDateParts(event.starts_at);
@@ -31,7 +31,7 @@ export default function MapView({ events, height = 520 }) {
             <Marker key={e.id} position={[e.lat, e.lng]} icon={pinIcon(e)} title={e.title}>
               <Popup>
                 <strong>{e.title}</strong><br />
-                {d.day} {d.month} {d.date} · {d.time}<br />
+                {d.day} {d.month} {d.date} · {timeRange(e.starts_at, e.ends_at)}<br />
                 {e.area_label}{e.is_private_location ? ' (general area until you RSVP)' : ''}<br />
                 <Link to={`/events/${e.id}`}>See details</Link>
               </Popup>
