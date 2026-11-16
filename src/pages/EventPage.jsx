@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
 import { TINTS } from '../lib/constants.js';
-import { eventDateParts } from '../lib/format.js';
+import { eventDateParts, eventEndMs, timeRange } from '../lib/format.js';
 import WeatherBox from '../components/WeatherBox.jsx';
 import ReportButton from '../components/ReportButton.jsx';
 import ReviewBox from '../components/ReviewBox.jsx';
@@ -75,7 +75,7 @@ export default function EventPage() {
   const isHost = user && ev.host_id === user.id;
   const cancelled = ev.status === 'cancelled';
   const startedAgo = Date.now() - new Date(ev.starts_at).getTime();
-  const ended = startedAgo > 3 * 3600000;
+  const ended = Date.now() > eventEndMs(ev);
   const approval = !ev.open_invite; // the host approves each guest
   const freeEvent = ev.listing_type === 'free_event'; // a Free in Austin listing, not run by the person who listed it
   const canReview = !freeEvent && user && going && !isHost && !cancelled && startedAgo >= 3600000 && startedAgo <= 30 * 86400000;
@@ -118,7 +118,7 @@ export default function EventPage() {
   const street = address || ev.address; // private address (RSVP'd only) or a public spot's address
   const where = street ? (ev.is_private_location ? street : `${ev.area_label}, ${street}`) : ev.area_label;
   const directions = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(street || `${ev.lat},${ev.lng}`)}`;
-  const shareBody = encodeURIComponent(`I'm going to "${ev.title}" on ${d.long} at ${d.time}, at ${where}. Hosted by ${ev.host?.display_name || 'an Out & About host'}. Link: ${window.location.href}`);
+  const shareBody = encodeURIComponent(`I'm going to "${ev.title}" on ${d.long}, ${timeRange(ev.starts_at, ev.ends_at)}, at ${where}. Hosted by ${ev.host?.display_name || 'an Out & About host'}. Link: ${window.location.href}`);
   const shareHref = `mailto:${trusted}?subject=${encodeURIComponent('Where I\'ll be: ' + ev.title)}&body=${shareBody}`;
 
   return (
@@ -134,7 +134,7 @@ export default function EventPage() {
 
       <div className="event-body">
         <div className="event-main">
-          <p className="big">{d.long} · {d.time}</p>
+          <p className="big">{d.long} · {timeRange(ev.starts_at, ev.ends_at)}</p>
           <div>
             {ev.is_private_location && !address
               ? <><p className="big">{ev.area_label}, general area</p><p className="muted">{approval ? (requested ? 'The exact address unlocks once the host approves you.' : 'The host approves each guest. The exact address unlocks once you\'re approved.') : 'The exact address unlocks when you RSVP.'}</p></>
@@ -184,7 +184,7 @@ export default function EventPage() {
             </>
           )}
           {msg && <p className="error">{msg}</p>}
-          {!ended && !cancelled && <ShareInvite event={ev} when={`${d.long} at ${d.time}`} className={isHost ? 'btn btn-primary btn-wide' : 'btn btn-outline btn-wide'} />}
+          {!ended && !cancelled && <ShareInvite event={ev} when={`${d.long}, ${timeRange(ev.starts_at, ev.ends_at)}`} className={isHost ? 'btn btn-primary btn-wide' : 'btn btn-outline btn-wide'} />}
 
           {isHost && (
             <section className="panel">

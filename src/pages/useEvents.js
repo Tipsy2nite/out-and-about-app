@@ -18,7 +18,8 @@ export default function useEvents(filter = {}) {
       const since = new Date(Date.now() - 3 * 3600000).toISOString();
       let q = supabase.from('events')
         .select('*, host:profiles!events_host_id_fkey(display_name, verified)')
-        .gte('starts_at', since)
+        // Still upcoming, or started in the last 3 hours, or has an end time that hasn't passed yet
+        .or(`starts_at.gte.${since},ends_at.gte.${new Date().toISOString()}`)
         .order('starts_at', { ascending: true })
         .limit(300);
       if (audience) q = q.eq('audience', audience);

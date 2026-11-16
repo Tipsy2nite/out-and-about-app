@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { TINTS } from '../lib/constants.js';
-import { eventDateParts } from '../lib/format.js';
+import { eventDateParts, timeRange } from '../lib/format.js';
 
 export default function EventCard({ event, going, requested, rating }) {
   const d = eventDateParts(event.starts_at);
@@ -15,7 +15,7 @@ export default function EventCard({ event, going, requested, rating }) {
       <div className="ticket-body">
         <span className="ticket-kind">{event.category} · {event.size}</span>
         <span className="ticket-title">{event.title}</span>
-        <span className="muted">{d.time} · {event.area_label}{event.is_private_location ? ' (general area)' : ''}</span>
+        <span className="muted">{timeRange(event.starts_at, event.ends_at)} · {event.area_label}{event.is_private_location ? ' (general area)' : ''}</span>
         <span className="ticket-tags">
           {event.listing_type === 'free_event' && <span className="pill pill-sun">Free</span>}
           {event.access_entry === 'Step-free' && <span className="pill">Step-free</span>}

@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../lib/auth.jsx';
 import { ACCESS, CATEGORIES, HOST_MIN_AGE, RAIN_PLANS, REQUIRE_VERIFIED_FOR_HOME_EVENTS, SIZES, TAGS } from '../lib/constants.js';
-import { defaultStart } from '../lib/format.js';
+import { defaultStart, endFromTime, localTime } from '../lib/format.js';
 import { ChipGroup } from '../components/Chip.jsx';
 import { LocationPicker } from '../components/MapView.jsx';
 import AddressSearch from '../components/AddressSearch.jsx';
@@ -40,6 +40,7 @@ export default function HostPage() {
     category: params.get('category') || 'Parks',
     audience: params.get('audience') || 'everyone',
     starts_at: defaultStart(),
+    ends_time: '', // optional, "HH:MM"
     area_label: '',
     is_private_location: false,
     address: '',
@@ -75,7 +76,7 @@ export default function HostPage() {
       const local = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
       setF({
         title: ev.title, description: ev.description || '', category: ev.category, audience: ev.audience,
-        starts_at: local, area_label: ev.area_label, is_private_location: ev.is_private_location, address: loc?.address || ev.address || '',
+        starts_at: local, ends_time: ev.ends_at ? localTime(ev.ends_at) : '', area_label: ev.area_label, is_private_location: ev.is_private_location, address: loc?.address || ev.address || '',
         size: ev.size, open_invite: ev.open_invite, tags: ev.tags || [], rain_plan: ev.rain_plan, rain_plan_note: ev.rain_plan_note || '',
         access_entry: ev.access_entry, access_shade: ev.access_shade, access_restrooms: ev.access_restrooms, access_noise: ev.access_noise,
         access_notes: ev.access_notes || '',
@@ -112,8 +113,9 @@ export default function HostPage() {
     if (f.listing_type !== 'free_event' && f.is_private_location && !f.address.trim()) return setError('Add the exact address. Only guests who RSVP will see it.');
     const timeChanged = !editing || f.starts_at !== original?.starts_local;
     if (timeChanged && new Date(f.starts_at) < new Date()) return setError('Pick a date and time in the future.');
+    const endsAt = endFromTime(f.starts_at, f.ends_time);
     setSaving(true);
-    const { address, starts_at, ...fields } = f;
+    const { address, starts_at, ends_time, ...fields } = f;
     const freeEvent = f.listing_type === 'free_event';
     const rest = { ...fields, is_private_location: freeEvent ? false : fields.is_private_location, source_url: freeEvent ? (fields.source_url.trim() || null) : null };
     if (rest.source_url && !/^https:\/\/\S+$/.test(rest.source_url)) { setSaving(false); return setError('The official event link should start with https://'); }
@@ -122,6 +124,8 @@ export default function HostPage() {
     if (editing) {
       const changes = { ...rest, address: publicAddress, lat: pin[0], lng: pin[1], description: rest.description || null, rain_plan_note: rest.rain_plan_note || null, access_notes: rest.access_notes || null };
       if (timeChanged) changes.starts_at = new Date(starts_at).toISOString();
+      const endIso = endsAt ? endsAt.toISOString() : null;
+      if (endIso !== (original.ends_at ? new Date(original.ends_at).toISOString() : null)) changes.ends_at = endIso;
       const { error: err } = await supabase.from('events').update(changes).eq('id', editId);
       if (err) { setSaving(false); return setError(`Couldn't save: ${err.message}`); }
       if (f.is_private_location && address.trim() !== original.address) {
@@ -134,7 +138,7 @@ export default function HostPage() {
     }
 
     const { data, error: err } = await supabase.from('events')
-      .insert({ ...rest, address: publicAddress, starts_at: new Date(starts_at).toISOString(), lat: pin[0], lng: pin[1] })
+      .insert({ ...rest, address: publicAddress, starts_at: new Date(starts_at).toISOString(), ...(endsAt ? { ends_at: endsAt.toISOString() } : {}), lat: pin[0], lng: pin[1] })
       .select('id').single();
     if (err) { setSaving(false); return setError(`Couldn't post it: ${err.message}`); }
     if (f.is_private_location) {
@@ -185,9 +189,24 @@ export default function HostPage() {
       <label className="field">Tell people about it
         <textarea rows={4} maxLength={2000} value={f.description} onChange={onInput('description')} placeholder="What to bring, what to expect, how to find you." />
       </label>
-      <label className="field">When?
-        <input type="datetime-local" required value={f.starts_at} onChange={onInput('starts_at')} />
-      </label>
+      <div className="field-row">
+        <label className="field">Starts
+          <input type="datetime-local" required value={f.starts_at} onChange={onInput('starts_at')} />
+        </label>
+        <label className="field">Ends (optional)
+          <input type="time" value={f.ends_time} onChange={onInput('ends_time')} />
+        </label>
+      </div>
+      {f.ends_time && (() => {
+        const end = endFromTime(f.starts_at, f.ends_time);
+        const next = end && end.toDateString() !== new Date(f.starts_at).toDateString();
+        return (
+          <p className="small muted">
+            {next ? 'Runs past midnight, so it ends the next day. ' : ''}
+            <button type="button" className="link-btn" onClick={() => set('ends_time')('')}>Clear end time</button>
+          </p>
+        );
+      })()}
 
       <fieldset><legend>What kind?</legend><ChipGroup options={CATEGORIES} value={f.category} onChange={set('category')} /></fieldset>
       <fieldset><legend>Who's it for?</legend>
